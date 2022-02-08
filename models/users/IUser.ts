@@ -1,5 +1,5 @@
-import { AccountStatus } from '../AccountStatus';
-import { AccountType } from '../AccoutType';
+import { AccountStatus } from './AccountStatus';
+import { AccountType } from './AccoutType';
 import { ILocation } from './ILocation';
 
 export default interface IUser {
@@ -12,7 +12,7 @@ export default interface IUser {
   headerImage: string;
   accountType: AccountType;
   accountStatus: AccountStatus;
-  biography: string;
+  bio: string;
   dateOfBirth: Date;
   location: ILocation;
   passwordEquals(password: string): boolean;

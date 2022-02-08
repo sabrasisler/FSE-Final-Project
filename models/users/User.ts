@@ -1,11 +1,11 @@
 import { stringify } from 'querystring';
-import { AccountStatus } from '../AccountStatus';
-import { AccountType } from '../AccoutType';
+import { AccountStatus } from './AccountStatus';
+import { AccountType } from './AccoutType';
 import { ILocation } from './ILocation';
 import { Location } from './Location';
 import IUser from './IUser';
 
-class User implements IUser {
+export default class User implements IUser {
   public readonly username: string;
   public readonly password: string;
   public readonly firstName: string;
@@ -15,7 +15,7 @@ class User implements IUser {
   public readonly headerImage: string;
   public readonly accountType: AccountType;
   public readonly accountStatus: AccountStatus;
-  public readonly biography: string;
+  public readonly bio: string;
   public readonly dateOfBirth: Date;
   public readonly location: ILocation;
 
@@ -28,8 +28,7 @@ class User implements IUser {
     profilePhoto: string,
     headerImage: string,
     accountType: string,
-    accountStatus: string,
-    biography: string,
+    bio: string,
     dateOfBirth: string,
     logitude: number,
     latitude: number
@@ -43,9 +42,10 @@ class User implements IUser {
     this.headerImage = headerImage;
     this.accountType = AccountType.Personal;
     this.accountStatus = AccountStatus.Active;
-    this.biography = biography;
+    this.bio = bio;
     this.dateOfBirth = new Date(dateOfBirth);
     this.location = new Location(logitude, latitude);
+    Object.freeze(this);
   }
   passwordEquals(password: string): boolean {
     return this.password == password;
