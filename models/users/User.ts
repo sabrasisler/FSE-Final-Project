@@ -5,7 +5,7 @@ import { ILocation } from './ILocation';
 import { Location } from './Location';
 import IUser from './IUser';
 
-export default class User implements IUser {
+export default class UserModel implements IUser {
   public readonly username: string;
   public readonly password: string;
   public readonly firstName: string;

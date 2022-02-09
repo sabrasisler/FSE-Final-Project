@@ -43,6 +43,11 @@ export default class ControllerFactory {
     app: Express,
     controller: IController
   ): void {
+    app.get('/api/users/:uid', controller.findById);
+    app.get('/api/users/', controller.findAll);
+
     app.post('/api/users/create', controller.create);
+    app.put('/api/users/:uid', controller.update);
+    app.delete('/api/users/:uid', controller.delete);
   }
 }
