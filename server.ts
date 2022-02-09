@@ -2,8 +2,11 @@ import express, { Request, Response } from 'express';
 import ControllerFactory from './controllers/ControllerFactory';
 import UserDao from './daos/UserDao';
 import { handleErrors } from './shared/handleErrors';
+import configMongo from './mongoose/config';
 const app = express();
 app.use(express.json());
+configMongo();
+
 // app.use(handleErrors);
 
 const userDao = new UserDao();

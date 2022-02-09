@@ -43,9 +43,6 @@ export default class ControllerFactory {
     app: Express,
     controller: IController
   ): void {
-    console.log('factory call ' + controller.hello());
-    controller.hello();
-
     app.post('/api/users/create', controller.create);
   }
 }

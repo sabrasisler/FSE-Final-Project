@@ -2,22 +2,33 @@ import User from '../models/users/User';
 import { Express, NextFunction, Request, Response } from 'express';
 import IController from './IController';
 import IDao from '../daos/IDao';
+import ControllerFactory from './ControllerFactory';
 
 export class UserController implements IController {
   private dao: IDao;
-  public message: string;
+
   public constructor(app: Express, dao: IDao) {
     this.dao = dao;
-    this.message = 'hello world';
   }
-  findAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+  findAll = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     throw new Error('Method not implemented.');
-  }
-  findById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  };
+  findById = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     throw new Error('Method not implemented.');
-  }
-  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
-    // console.log(req.body);
+  };
+  create = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     const user = new User(
       req.body.username,
       req.body.firstName,
@@ -33,14 +44,13 @@ export class UserController implements IController {
       req.body.latitude
     );
     try {
-      // const newUser = await this.dao.create(user);
-      console.log('this object: ' + this);
-      console.log(this.message);
-      res.status(200).json('success');
+      const newUser = await this.dao.create(user);
+      res.status(200).json(newUser);
     } catch (err) {
       next(err);
     }
-  }
+    return Promise.resolve();
+  };
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     const user = new User(
       req.body.username,
@@ -70,8 +80,5 @@ export class UserController implements IController {
     } catch (err) {
       next(err);
     }
-  }
-  hello(): string {
-    return this.message;
   }
 }

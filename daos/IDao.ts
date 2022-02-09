@@ -6,5 +6,4 @@ export default interface IDao {
   create<T>(model: T): Promise<T>;
   update<T>(model: T): Promise<T>;
   delete<T>(model: T): Promise<T>;
-  test(): void;
 }

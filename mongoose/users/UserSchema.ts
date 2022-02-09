@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema<IUser>(
     accountType: { type: String, enum: AccountType, required: true },
     accountStatus: {
       type: String,
-      num: AccountStatus,
+      enum: AccountStatus,
       required: true,
       default: AccountStatus.Active,
     },
