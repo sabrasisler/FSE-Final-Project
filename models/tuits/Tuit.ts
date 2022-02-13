@@ -3,12 +3,12 @@ import ITuit from './ITuit';
 
 export default class Tuit implements ITuit {
   public readonly tuit: string;
-  public readonly postedBy: IUser;
+  public readonly author: IUser;
   postedOn?: Date | undefined;
 
   public constructor(tuit: string, postedBy: IUser) {
     this.tuit = tuit;
-    this.postedBy = postedBy;
+    this.author = postedBy;
     Object.freeze(this);
   }
 }

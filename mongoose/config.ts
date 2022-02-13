@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import handleError from '../shared/handleError';
+import { exit } from 'process';
+import ErrorHandler from '../shared/ErrorHandler';
 dotenv.config();
 
 const configMongo = async () => {
@@ -11,7 +12,8 @@ const configMongo = async () => {
       console.log('db connection successful.');
     })
     .catch((err) => {
-      throw handleError(err, 'Error connecting to database.');
+      console.log('Error connecting to database.');
+      exit(1);
     });
 };
 

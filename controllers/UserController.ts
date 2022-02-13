@@ -2,15 +2,17 @@ import UserModel from '../models/users/User';
 import { Express, NextFunction, Request, Response } from 'express';
 import IController from './IController';
 import IDao from '../daos/IDao';
-import ControllerFactory from './ControllerFactory';
 import { ControllerErrors } from './ControllerErrors';
 import IUser from '../models/users/IUser';
+import { HttpStatusCode } from './HttpStatusCode';
+import CustomError from '../shared/CustomError';
 
 export class UserController implements IController {
-  private dao: IDao;
+  private readonly dao: IDao;
 
-  public constructor(app: Express, dao: IDao) {
+  public constructor(dao: IDao) {
     this.dao = dao;
+    Object.freeze(this);
   }
   findAll = async (
     req: Request,
@@ -37,9 +39,14 @@ export class UserController implements IController {
       console.log(req.params.uid);
       const existingUser: IUser = await this.dao.findById(req.params.uid);
       if (existingUser == null) {
-        res.status(404).json(ControllerErrors.USER_NOT_FOUND);
+        const error: CustomError = new CustomError(
+          HttpStatusCode.notFound,
+          ControllerErrors.USER_NOT_FOUND,
+          true
+        );
+        next(error);
       } else {
-        res.status(200).json(existingUser);
+        res.status(HttpStatusCode.ok).json(existingUser);
       }
     } catch (err) {
       next(err);
@@ -50,24 +57,12 @@ export class UserController implements IController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const user = new UserModel(
-      req.body.username,
-      req.body.firstName,
-      req.body.lastName,
-      req.body.password,
-      req.body.email,
-      req.body.profilePhoto,
-      req.body.headerImage,
-      req.body.accountType,
-      req.body.bio,
-      req.body.dateOfBirth,
-      req.body.longitude,
-      req.body.latitude
-    );
+    const data = { ...req.body, uid: req.params.uid };
     try {
-      const newUser: IUser = await this.dao.create(user);
-      res.status(200).json(newUser);
+      const newUser: IUser = await this.dao.create(data);
+      res.status(HttpStatusCode.ok).json(newUser);
     } catch (err) {
+      if (err instanceof CustomError) console.log(err.status);
       next(err);
     }
   };
@@ -76,33 +71,41 @@ export class UserController implements IController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const user = new UserModel(
-      req.body.username,
-      req.body.firstName,
-      req.body.lastName,
-      req.body.password,
-      req.body.email,
-      req.body.profilePhoto,
-      req.body.headerImage,
-      req.body.accountType,
-      req.body.bio,
-      req.body.dateOfBirth,
-      req.body.longitude,
-      req.body.latitude
-    );
     try {
-      const updatedUser = await this.dao.update(req.params.uid, user);
-      res.status(200).json(updatedUser);
+      const updatedUser = await this.dao.update(req.params.uid, req.body);
+      if (updatedUser == null) {
+        const error: CustomError = new CustomError(
+          HttpStatusCode.internalError,
+          ControllerErrors.ERROR_UPDADING_USER,
+          true
+        );
+        next(error);
+      } else {
+        res.status(HttpStatusCode.ok).json(updatedUser);
+      }
     } catch (err) {
       next(err);
     }
   };
-  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+  delete = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      await this.dao.delete(req.body.uid);
-      res.sendStatus(200);
+      const deletedUser = await this.dao.delete(req.params.uid);
+      if (deletedUser == null) {
+        const error: CustomError = new CustomError(
+          HttpStatusCode.badRequest,
+          ControllerErrors.USER_NOT_FOUND,
+          true
+        );
+        next(error);
+      } else {
+        res.status(HttpStatusCode.ok).json(deletedUser);
+      }
     } catch (err) {
       next(err);
     }
-  }
+  };
 }
