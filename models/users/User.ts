@@ -40,7 +40,8 @@ export default class UserModel implements IUser {
     this.email = email;
     this.profilePhoto = profilePhoto;
     this.headerImage = headerImage;
-    this.accountType = AccountType.Personal;
+    const type: AccountType = accountType as AccountType;
+    this.accountType = type;
     this.accountStatus = AccountStatus.Active;
     this.bio = bio;
     this.dateOfBirth = new Date(dateOfBirth);

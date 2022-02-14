@@ -22,7 +22,7 @@ export default class TuitController implements ITuitController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const tuits = this.dao.findAll();
+    const tuits = await this.dao.findAll();
     res.status(HttpStatusCode.ok).json(tuits);
   };
   findById = async (
