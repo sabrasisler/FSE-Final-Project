@@ -1,9 +1,6 @@
 import ITuitDao from './ITuitDao';
 import { Model } from 'mongoose';
-import ITuit from '../models/tuits/ITuit';
-import CustomError from '../shared/CustomError';
-import { HttpStatusCode } from '../controllers/HttpStatusCode';
-import { DaoErrors } from './DaoErrors';
+import ITuit from '../../models/tuits/ITuit';
 
 export default class TuitDao implements ITuitDao {
   private readonly model: Model<ITuit>;

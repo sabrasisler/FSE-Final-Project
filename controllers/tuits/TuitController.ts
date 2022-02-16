@@ -1,7 +1,7 @@
 import ITuitController from './ITuitController';
 import { NextFunction, Request, Response } from 'express';
-import ITuitDao from '../daos/ITuitDao';
-import { HttpStatusCode } from './HttpStatusCode';
+import ITuitDao from '../../daos/tuits/ITuitDao';
+import { HttpStatusCode } from '../HttpStatusCode';
 
 export default class TuitController implements ITuitController {
   private readonly dao: ITuitDao;

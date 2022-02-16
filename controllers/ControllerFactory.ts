@@ -1,22 +1,25 @@
 import IController from './IController';
-import ITuitController from './ITuitController';
-import TuitController from './TuitController';
-import { UserController } from './UserController';
-import { Express, Request, NextFunction, Response } from 'express';
-import IDao from '../daos/IDao';
-import ErrorHandler from '../shared/ErrorHandler';
-import UserDao from '../daos/UserDao';
+import ITuitController from './tuits/ITuitController';
+import TuitController from './tuits/TuitController';
+import { UserController } from './users/UserController';
+import { Express } from 'express';
+import UserDao from '../daos/users/UserDao';
 import UserModel from '../mongoose/users/UserModel';
-import TuitDao from '../daos/TuitDao';
+import TuitDao from '../daos/tuits/TuitDao';
 import TuitModel from '../mongoose/tuiters/TuitModel';
+import ILikeController from './likes/ILikeController';
+import LikeController from './likes/LikeController';
+import { LikeDao } from '../daos/likes/LikeDao';
+import LikeModel from '../mongoose/likes/LikeModel';
 
 export default class ControllerFactory {
   private static userController: IController | undefined;
   private static tuitController: ITuitController | undefined;
+  private static likeController: ILikeController | undefined;
 
   private constructor() {}
 
-  public static getInstance(type: string, app: Express): IController | null {
+  public static getInstance = (type: string, app: Express): any => {
     switch (type) {
       case 'user': {
         if (!ControllerFactory.userController) {
@@ -42,28 +45,57 @@ export default class ControllerFactory {
         }
         return ControllerFactory.tuitController;
       }
+      case 'likes': {
+        if (!ControllerFactory.likeController) {
+          ControllerFactory.likeController = new LikeController(
+            new LikeDao(LikeModel)
+          );
+          ControllerFactory.registerLikeRoutes(
+            app,
+            ControllerFactory.likeController
+          );
+        }
+        return ControllerFactory.likeController;
+      }
       default:
         return null;
     }
-  }
-  private static registerUserRoutes(
+  };
+  private static registerUserRoutes = (
     app: Express,
-    controller: IController
-  ): void {
+    userController: IController
+  ): void => {
     // User
-    app.get('/api/users/:uid', controller.findById);
-    app.get('/api/users/', controller.findAll);
-    app.post('/api/users/create', controller.create);
-    app.put('/api/users/:uid', controller.update);
-    app.delete('/api/users/:uid', controller.delete);
-  }
+    app.get('/api/users/:uid', userController.findById);
+    app.get('/api/users/', userController.findAll);
+    app.post('/api/users/create', userController.create);
+    app.put('/api/users/:uid', userController.update);
+    app.delete('/api/users/:uid', userController.delete);
+  };
 
-  private static registerTuitRoutes(app: Express, controller: ITuitController) {
-    app.get('/api/tuits', controller.findAll);
-    app.get('/api/users/:uid/tuits', controller.findByUser);
-    app.get('/api/tuits/:tid', controller.findById);
-    app.post('/api/users/:uid/tuits', controller.create);
-    app.put('/api/tuits/:tid', controller.update);
-    app.delete('/api/tuits/:tid', controller.delete);
+  private static registerTuitRoutes = (
+    app: Express,
+    tuitController: ITuitController
+  ) => {
+    app.get('/api/tuits', tuitController.findAll);
+    app.get('/api/users/:uid/tuits', tuitController.findByUser);
+    app.get('/api/tuits/:tid', tuitController.findById);
+    app.post('/api/users/:uid/tuits', tuitController.create);
+    app.put('/api/tuits/:tid', tuitController.update);
+    app.delete('/api/tuits/:tid', tuitController.delete);
+  };
+
+  private static registerLikeRoutes(
+    app: Express,
+    likeController: ILikeController
+  ) {
+    // user likes a tuit
+    app.post('/api/users/:uid/likes/:tid', likeController.userLikesTuit);
+    // user unlikes a tuit
+    app.delete('/api/users/:uid/likes/:tid', likeController.userUnlikesTuit);
+    // all tuits liked by user
+    app.get('/api/users/:uid/likes', likeController.findAllTuitsLikedByUser);
+    // all users that likes a tuit
+    app.get('/api/tuits/:tid/likes', likeController.findAllUsersByTuitLike);
   }
 }

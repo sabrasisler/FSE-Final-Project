@@ -1,11 +1,11 @@
-import UserModel from '../models/users/User';
+import UserModel from '../../models/users/User';
 import { Express, NextFunction, Request, Response } from 'express';
-import IController from './IController';
-import IDao from '../daos/IDao';
-import { ControllerErrors } from './ControllerErrors';
-import IUser from '../models/users/IUser';
-import { HttpStatusCode } from './HttpStatusCode';
-import CustomError from '../shared/CustomError';
+import IController from '../IController';
+import IDao from '../../daos/IDao';
+import { ControllerErrors } from '../ControllerErrors';
+import IUser from '../../models/users/IUser';
+import { HttpStatusCode } from '../HttpStatusCode';
+import CustomError from '../../shared/CustomError';
 
 export class UserController implements IController {
   private readonly dao: IDao;

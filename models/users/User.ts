@@ -5,6 +5,11 @@ import { ILocation } from './ILocation';
 import { Location } from './Location';
 import IUser from './IUser';
 
+/**
+ * Represents a user model entity containing all basic information related to to a user.
+ * @implements {IUser}.
+ */
+
 export default class UserModel implements IUser {
   public readonly username: string;
   public readonly password: string;

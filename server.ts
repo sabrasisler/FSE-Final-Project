@@ -1,10 +1,7 @@
 import express, { Request, Response } from 'express';
 import { exit } from 'process';
 import ControllerFactory from './controllers/ControllerFactory';
-import UserDao from './daos/UserDao';
 import configMongo from './mongoose/config';
-import UserModel from './mongoose/users/UserModel';
-import ErrorHandler from './shared/ErrorHandler';
 import { registerMiddleWare } from './shared/registerMiddleWare';
 
 const app = express();
@@ -13,6 +10,7 @@ configMongo();
 
 const userController = ControllerFactory.getInstance('user', app);
 const tuitController = ControllerFactory.getInstance('tuit', app);
+const likesController = ControllerFactory.getInstance('likes', app);
 registerMiddleWare(app);
 
 process.on('uncaughtException', function (err) {

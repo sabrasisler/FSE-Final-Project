@@ -1,12 +1,12 @@
-import CustomError from '../shared/CustomError';
-import IDao from './IDao';
-import { DaoErrors } from './DaoErrors';
+import CustomError from '../../shared/CustomError';
+import IDao from '../IDao';
+import { DaoErrors } from '../DaoErrors';
 import { Model } from 'mongoose';
-import IUser from '../models/users/IUser';
+import IUser from '../../models/users/IUser';
 
-import { HttpStatusCode } from '../controllers/HttpStatusCode';
-import ErrorHandler from '../shared/ErrorHandler';
-import User from '../models/users/User';
+import { HttpStatusCode } from '../../controllers/HttpStatusCode';
+import ErrorHandler from '../../shared/ErrorHandler';
+import User from '../../models/users/User';
 
 export default class UserDao implements IDao {
   private readonly model: Model<IUser>;
