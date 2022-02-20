@@ -10,7 +10,8 @@ configMongo();
 
 const userController = ControllerFactory.getInstance('user', app);
 const tuitController = ControllerFactory.getInstance('tuit', app);
-const likesController = ControllerFactory.getInstance('likes', app);
+const likesController = ControllerFactory.getInstance('like', app);
+const messageController = ControllerFactory.getInstance('message', app);
 registerMiddleWare(app);
 
 process.on('uncaughtException', function (err) {

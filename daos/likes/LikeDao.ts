@@ -7,35 +7,65 @@ import ITuit from '../../models/tuits/ITuit';
 import TuitModel from '../../mongoose/tuiters/TuitModel';
 
 export class LikeDao implements ILikeDao {
-  private readonly model: Model<ILike>;
+  private readonly likeModel: Model<ILike>;
+  private readonly userModel: Model<IUser>;
 
-  public constructor(model: Model<ILike>) {
-    this.model = model;
+  public constructor(likeModel: Model<ILike>, userModel: Model<IUser>) {
+    this.likeModel = likeModel;
+    this.userModel = userModel;
   }
   userLikesTuit = async (uid: string, tid: string): Promise<ITuit> => {
-    const like = await this.model.create({ user: uid, tuit: tid });
-    const likeWithTuit = await like.populate('tuit');
-    return likeWithTuit.tuit;
+    //TODO: Only create if like doesn't exist yet using upsert.
+    const like: ILike | null = await this.likeModel
+      .findOneAndUpdate(
+        { user: uid, tuit: tid },
+        { user: uid, tuit: tid },
+        { upsert: true }
+      )
+      .populate('tuit');
+    if (like != null) {
+      return like.tuit;
+    }
+    throw new Error();
   };
-  userUnlikesTuit = async (uid: string, tid: string): Promise<ITuit | null> => {
-    const deletedLike = await this.model.findOneAndDelete({
-      user: uid,
-      tuit: tid,
-    });
+  userUnlikesTuit = async (uid: string, tid: string): Promise<ITuit> => {
+    const deletedLike = await this.likeModel
+      .findOneAndDelete({
+        user: uid,
+        tuit: tid,
+      })
+      .populate('tuit');
+    // Update tuit count.
     if (deletedLike != null) {
-      const tuitUnliked = await TuitModel.findOneAndUpdate(
+      await TuitModel.updateOne(
         { _id: deletedLike.tuit },
         { $inc: { likeCount: -1 } },
         { new: true }
       );
-      return tuitUnliked;
+      return deletedLike.tuit;
     }
-    return null;
+    throw new Error();
   };
-  findAllUsersByTuitLike(): Promise<IUser[]> {
-    throw new Error('Method not implemented.');
-  }
-  findAllTuitsLikedByUser(): Promise<ITuit[]> {
-    throw new Error('Method not implemented.');
-  }
+  findAllUsersByTuitLike = async (tid: string): Promise<IUser[]> => {
+    const likes: ILike[] = await this.likeModel
+      .find({ tuit: tid })
+      .populate('user')
+      .exec();
+    const users: IUser[] = [];
+    likes.map((like) => {
+      users.push(like.user);
+    });
+    return users;
+  };
+  findAllTuitsLikedByUser = async (uid: string): Promise<ITuit[]> => {
+    const likes: ILike[] = await this.likeModel
+      .find({ user: uid })
+      .populate({ path: 'tuit' })
+      .exec();
+    const tuits: ITuit[] = [];
+    likes.map((like) => {
+      tuits.push(like.tuit);
+    });
+    return tuits;
+  };
 }

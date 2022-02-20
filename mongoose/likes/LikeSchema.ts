@@ -26,4 +26,12 @@ LikeSchema.post('remove', async (doc, next) => {
   await TuitModel.updateOne({ _id: tuitId }, { $inc: { likeCount: -1 } });
 });
 
+LikeSchema.index(
+  {
+    user: 1,
+    tuit: 1,
+  },
+  { unique: true }
+);
+
 export default LikeSchema;

@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import ILikeDao from '../../daos/likes/ILikeDao';
+import ILike from '../../models/likes/ILike';
 import ITuit from '../../models/tuits/ITuit';
+import IUser from '../../models/users/IUser';
 import { HttpStatusCode } from '../HttpStatusCode';
 import ILikeController from './ILikeController';
 
@@ -32,10 +34,24 @@ export default class LikeController implements ILikeController {
     );
     res.status(HttpStatusCode.ok).json(unlikedTuit);
   };
-  findAllUsersByTuitLike(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-  findAllTuitsLikedByUser(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
+  findAllUsersByTuitLike = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    const users: IUser[] = await this.dao.findAllUsersByTuitLike(
+      req.params.tid
+    );
+    res.status(HttpStatusCode.ok).json(users);
+  };
+  findAllTuitsLikedByUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    const tuits: ITuit[] = await this.dao.findAllTuitsLikedByUser(
+      req.params.uid
+    );
+    res.status(HttpStatusCode.ok).json(tuits);
+  };
 }

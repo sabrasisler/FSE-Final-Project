@@ -10,7 +10,6 @@ export const handleControllerError = (
   res: Response,
   next: NextFunction
 ) => {
-  console.log('Triggered');
   if (err instanceof CustomError && err.isOperational) {
     res.status(err.status).json({
       timestamp: Date.now,

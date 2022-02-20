@@ -6,14 +6,47 @@ import CustomError from './CustomError';
 
 export default class ErrorHandler {
   public static createError = (
-    err: any,
-    fallbackMessage: string
+    message: string,
+    err?: any,
+    statusCode?: HttpStatusCode
   ): CustomError => {
-    if (err instanceof Error) {
-      return new CustomError(500, err.message, true);
-    } else {
-      return new CustomError(500, fallbackMessage, true);
+    let status: HttpStatusCode = HttpStatusCode.internalError;
+    if (statusCode) {
+      status = statusCode;
     }
+    if (err instanceof Error) {
+      return new CustomError(status, err.message, true);
+    } else {
+      return new CustomError(status, message, true);
+    }
+  };
+
+  public static handleNull = (object: any, message: string): void => {
+    if (object === null) {
+      throw new CustomError(HttpStatusCode.notFound, message, true);
+    } else {
+      return;
+    }
+  };
+
+  // public static createNullError = (
+  //   object: any,
+  //   message: string
+  // ): CustomError | void => {
+  //   if (object == null) {
+  //     return new CustomError(HttpStatusCode.notFound, message, true);
+  //   }
+  //   return;
+  // };
+
+  public static returnObjectOrNullError = <T>(
+    object: T | null,
+    message: string
+  ): T => {
+    if (object == null) {
+      throw new CustomError(HttpStatusCode.notFound, message, true);
+    }
+    return object;
   };
 
   public static isOperationalError(err: any) {
@@ -22,7 +55,7 @@ export default class ErrorHandler {
     }
     return false;
   }
-  public static handleControllerError = (
+  public static handleCentralError = (
     err: Error,
     req: Request,
     res: Response,
@@ -37,7 +70,7 @@ export default class ErrorHandler {
         path: req.path,
       });
     } else {
-      res.status(500).json({
+      res.status(HttpStatusCode.internalError).json({
         timestamp: Date.now,
         status: HttpStatusCode.internalError,
         error: ControllerErrors.SOMETHING_WENT_WRONG,

@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import ITuit from '../../models/tuits/ITuit';
+import UserSchema from '../users/UserSchema';
 
 const TuitSchema = new mongoose.Schema<ITuit>(
   {
@@ -10,6 +11,16 @@ const TuitSchema = new mongoose.Schema<ITuit>(
     replyCount: { type: Number, default: 0 },
   },
   { timestamps: true, collection: 'tuits' }
+);
+
+TuitSchema.index(
+  {
+    author: 1,
+    tuit: 1,
+  },
+  {
+    unique: true,
+  }
 );
 
 export default TuitSchema;

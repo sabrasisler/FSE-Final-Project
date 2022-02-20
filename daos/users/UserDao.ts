@@ -3,12 +3,9 @@ import IDao from '../IDao';
 import { DaoErrors } from '../DaoErrors';
 import { Model } from 'mongoose';
 import IUser from '../../models/users/IUser';
-
-import { HttpStatusCode } from '../../controllers/HttpStatusCode';
 import ErrorHandler from '../../shared/ErrorHandler';
-import User from '../../models/users/User';
 
-export default class UserDao implements IDao {
+export default class UserDao implements IDao<IUser> {
   private readonly model: Model<IUser>;
   constructor(model: Model<IUser>) {
     this.model = model;
@@ -17,97 +14,69 @@ export default class UserDao implements IDao {
   findAll = async (): Promise<IUser[]> => {
     try {
       const dbUsers = await this.model.find().exec();
-      return dbUsers;
+      return ErrorHandler.returnObjectOrNullError(
+        dbUsers,
+        DaoErrors.USER_NOT_FOUND
+      );
     } catch (err) {
-      throw ErrorHandler.createError(err, DaoErrors.ERROR_FINDING_ALL_USERS);
+      throw ErrorHandler.createError(DaoErrors.DB_ERROR_FINDING_ALL_USERS, err);
     }
   };
-  findById = async (uid: string): Promise<IUser | null> => {
+  findById = async (uid: string): Promise<IUser> => {
     try {
-      const dbUser = await this.model.findById(uid);
-      if (dbUser == null) {
-        throw new CustomError(
-          HttpStatusCode.notFound,
-          DaoErrors.USER_DOES_NOT_EXIST,
-          true
-        );
-      }
-      return dbUser;
+      const dbUser: IUser | null = await this.model.findById(uid);
+      return ErrorHandler.returnObjectOrNullError(
+        dbUser,
+        DaoErrors.USER_DOES_NOT_EXIST
+      );
     } catch (err) {
-      throw ErrorHandler.createError(err, DaoErrors.ERROR_FINDING_USER);
+      throw ErrorHandler.createError(DaoErrors.DB_ERROR_FINDING_USER, err);
     }
   };
 
-  create = async (data: any): Promise<IUser> => {
-    let existingUser = null;
+  create = async (user: IUser): Promise<IUser> => {
     try {
-      existingUser = await this.model.findOne({ email: data.email });
-    } catch (err) {
-      throw ErrorHandler.createError(err, DaoErrors.CANNOT_SAVE_TO_DB);
-    }
-    if (existingUser != null) {
-      throw new CustomError(
-        HttpStatusCode.conflict,
-        DaoErrors.USER_ALREADY_EXISTS,
-        true
+      const newUser: IUser | null = await this.model.findOneAndUpdate(
+        { email: user.email },
+        user,
+        {
+          upsert: true,
+        }
       );
-    }
-    try {
-      const user = new User(
-        data.username,
-        data.firstName,
-        data.lastName,
-        data.password,
-        data.email,
-        data.profilePhoto,
-        data.headerImage,
-        data.accountType,
-        data.bio,
-        data.dateOfBirth,
-        data.longitude,
-        data.latitude
+      return ErrorHandler.returnObjectOrNullError(
+        newUser,
+        DaoErrors.USER_NOT_FOUND
       );
-      const dbUser = await this.model.create(user);
-      return dbUser;
     } catch (err) {
-      throw ErrorHandler.createError(err, DaoErrors.CANNOT_SAVE_TO_DB);
+      throw ErrorHandler.createError(DaoErrors.DB_ERROR_CREATING_USER, err);
     }
   };
-  update = async (uid: string, user: any): Promise<any> => {
+  update = async (uid: string, user: any): Promise<IUser> => {
     try {
-      const updatedUser = await this.model.findOneAndUpdate(
+      const updatedUser: IUser | null = await this.model.findOneAndUpdate(
         { _id: uid },
         user,
         {
           new: true,
         }
       );
-      if (updatedUser == null) {
-        throw new CustomError(
-          HttpStatusCode.badRequest,
-          DaoErrors.NO_USER_TO_UPDATE,
-          true
-        );
-      }
-      return updatedUser;
+      return ErrorHandler.returnObjectOrNullError(
+        updatedUser,
+        DaoErrors.NO_USER_TO_UPDATE
+      );
     } catch (err) {
-      throw ErrorHandler.createError(err, DaoErrors.CANNOT_SAVE_TO_DB);
+      throw ErrorHandler.createError(DaoErrors.DB_ERROR_CREATING_USER, err);
     }
   };
-  delete = async (uid: string): Promise<IUser | null> => {
-    let deletedUser = null;
+  delete = async (uid: string): Promise<IUser> => {
     try {
-      deletedUser = await this.model.findByIdAndDelete(uid);
-      if (deletedUser == null) {
-        throw new CustomError(
-          HttpStatusCode.badRequest,
-          DaoErrors.USER_DOES_NOT_EXIST,
-          true
-        );
-      }
+      const deletedUser: IUser | null = await this.model.findByIdAndDelete(uid);
+      return ErrorHandler.returnObjectOrNullError(
+        deletedUser,
+        DaoErrors.USER_DOES_NOT_EXIST
+      );
     } catch (err) {
-      ErrorHandler.createError(err, DaoErrors.CANNOT_DELETE_USER);
+      throw ErrorHandler.createError(DaoErrors.CANNOT_DELETE_USER, err);
     }
-    return deletedUser;
   };
 }

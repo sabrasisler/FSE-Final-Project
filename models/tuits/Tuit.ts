@@ -6,6 +6,8 @@ export default class Tuit implements ITuit {
   public readonly author: IUser;
   public readonly postedDate: Date;
   postedOn?: Date | undefined;
+  likeCount: number = 0;
+  replyCount: number = 0;
 
   public constructor(tuit: string, postedBy: IUser, postedDate: string) {
     this.tuit = tuit;

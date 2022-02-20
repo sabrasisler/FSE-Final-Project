@@ -1,7 +1,7 @@
-export default interface IDao {
-  findAll(): Promise<any[]>;
-  findById(uid: string): Promise<any>;
-  create(data: any): Promise<any>;
-  update(uid: string, data: any): Promise<any>;
-  delete(data: any): Promise<any>;
+export default interface IDao<T> {
+  findAll(): Promise<T[]>;
+  findById(id: string): Promise<T>;
+  create(type: T): Promise<T>;
+  update(id: string, type: T): Promise<T>;
+  delete(id: string): Promise<T>;
 }
