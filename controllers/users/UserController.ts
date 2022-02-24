@@ -1,15 +1,53 @@
-import UserModel from '../../models/users/User';
 import { NextFunction, Request, Response } from 'express';
 import IController from '../IController';
 import IDao from '../../daos/IDao';
 import IUser from '../../models/users/IUser';
 import { HttpStatusCode } from '../HttpStatusCode';
+import AbsBaseController from '../AbsBaseController';
+import IRoute from '../IRoute';
+import { Methods } from '../Methods';
 
-export class UserController implements IController {
+export class UserController extends AbsBaseController implements IController {
+  public path: string;
+  protected routes: IRoute[];
   private readonly dao: IDao<IUser>;
 
   public constructor(dao: IDao<IUser>) {
+    super();
+    this.path = 'api/v1';
     this.dao = dao;
+    this.routes = [
+      {
+        path: '/users',
+        method: Methods.GET,
+        handler: this.findAll,
+        localMiddleware: [],
+      },
+      {
+        path: '/users/:userId',
+        method: Methods.GET,
+        handler: this.findById,
+        localMiddleware: [],
+      },
+      {
+        path: '/users/:userId',
+        method: Methods.POST,
+        handler: this.create,
+        localMiddleware: [],
+      },
+      {
+        path: '/users/:userId',
+        method: Methods.PUT,
+        handler: this.update,
+        localMiddleware: [],
+      },
+      {
+        path: '/users/:userId',
+        method: Methods.DELETE,
+        handler: this.delete,
+        localMiddleware: [],
+      },
+    ];
     Object.freeze(this);
   }
   findAll = async (
@@ -30,7 +68,7 @@ export class UserController implements IController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const existingUser: IUser = await this.dao.findById(req.params.uid);
+      const existingUser: IUser = await this.dao.findById(req.params.userId);
       res.status(HttpStatusCode.ok).json(existingUser);
     } catch (err) {
       next(err);
@@ -41,7 +79,7 @@ export class UserController implements IController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const data = { ...req.body, uid: req.params.uid };
+    const data = { ...req.body, uid: req.params.userId };
     try {
       const newUser: IUser = await this.dao.create(data);
       res.status(HttpStatusCode.ok).json(newUser);
@@ -55,7 +93,7 @@ export class UserController implements IController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const updatedUser = await this.dao.update(req.params.uid, req.body);
+      const updatedUser = await this.dao.update(req.params.userId, req.body);
       res.status(HttpStatusCode.ok).json(updatedUser);
     } catch (err) {
       next(err);
@@ -67,7 +105,7 @@ export class UserController implements IController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const deletedUser = await this.dao.delete(req.params.uid);
+      const deletedUser = await this.dao.delete(req.params.userId);
       res.status(HttpStatusCode.ok).json(deletedUser);
     } catch (err) {
       next(err);

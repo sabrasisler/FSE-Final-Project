@@ -1,19 +1,22 @@
 import mongoose, { Model, SchemaTypes } from 'mongoose';
 import IConversation from '../../models/messages/IConversation';
 import IMessage from '../../models/messages/IMessage';
-import ErrorHandler from '../../shared/ErrorHandler';
-import { DaoErrors } from '../DaoErrors';
+import IErrorHandler from '../../errors/IErrorHandler';
 import IMessageDao from './IMessageDao';
+import { MessageDaoErrors } from '../../errors/MessageDaoErrors';
 
 export default class MessageDao implements IMessageDao {
   private readonly messageModel: Model<IMessage>;
   private readonly conversationModel: Model<IConversation>;
+  private readonly errorHandler: IErrorHandler;
   public constructor(
     messageModel: Model<IMessage>,
-    conversationModel: Model<IConversation>
+    conversationModel: Model<IConversation>,
+    errorHandler: IErrorHandler
   ) {
     this.messageModel = messageModel;
     this.conversationModel = conversationModel;
+    this.errorHandler = errorHandler;
     Object.freeze(this);
   }
   createConversation = async (
@@ -27,8 +30,8 @@ export default class MessageDao implements IMessageDao {
       });
       return await convo.populate('createdBy');
     } catch (err) {
-      throw ErrorHandler.createError(
-        DaoErrors.DB_ERROR_CREATING_CONVERSATION,
+      throw this.errorHandler.createError(
+        MessageDaoErrors.DB_ERROR_CREATING_CONVERSATION,
         err
       );
     }
@@ -44,7 +47,9 @@ export default class MessageDao implements IMessageDao {
         participants: { $in: [sender] },
       });
       if (existingConvo == null) {
-        throw ErrorHandler.createError(DaoErrors.INVALID_CONVERSATION);
+        throw this.errorHandler.createError(
+          MessageDaoErrors.INVALID_CONVERSATION
+        );
       }
       const dbMessage = await this.messageModel.create({
         sender,
@@ -52,7 +57,10 @@ export default class MessageDao implements IMessageDao {
       });
       return await dbMessage.populate('sender');
     } catch (err) {
-      throw ErrorHandler.createError(DaoErrors.DB_ERROR_CREATING_MESSAGE, err);
+      throw this.errorHandler.createError(
+        MessageDaoErrors.DB_ERROR_CREATING_MESSAGE,
+        err
+      );
     }
   };
 
@@ -67,19 +75,22 @@ export default class MessageDao implements IMessageDao {
         participants: { $in: [userId] },
       });
 
-      ErrorHandler.handleNull(existingConvo, DaoErrors.INVALID_CONVERSATION);
+      this.errorHandler.handleNull(
+        existingConvo,
+        MessageDaoErrors.INVALID_CONVERSATION
+      );
       const allMessagesForConversation = await this.messageModel.find({
         conversation: conversationId,
         removeFor: { $nin: [userId] },
       });
-      ErrorHandler.handleNull(
+      this.errorHandler.handleNull(
         allMessagesForConversation,
-        DaoErrors.NO_MATCHING_MESSAGES
+        MessageDaoErrors.NO_MATCHING_MESSAGES
       );
       return allMessagesForConversation;
     } catch (err) {
-      throw ErrorHandler.createError(
-        DaoErrors.DB_ERROR_GETTING_CONVERSATION_MESSAGES,
+      throw this.errorHandler.createError(
+        MessageDaoErrors.DB_ERROR_GETTING_CONVERSATION_MESSAGES,
         err
       );
     }
@@ -145,8 +156,8 @@ export default class MessageDao implements IMessageDao {
       // return await this.conversationModel.populate(convo, {path: 'sender'})
       return convo;
     } catch (err) {
-      throw ErrorHandler.createError(
-        DaoErrors.DB_ERROR_RETRIEVING_LAST_CONVERSATION_MESSAGES,
+      throw this.errorHandler.createError(
+        MessageDaoErrors.DB_ERROR_RETRIEVING_LAST_CONVERSATION_MESSAGES,
         err
       );
     }
@@ -165,12 +176,15 @@ export default class MessageDao implements IMessageDao {
           $addToSet: { removeFor: userId },
         }
       );
-      return ErrorHandler.returnObjectOrNullError(
+      return this.errorHandler.sameObjectOrNullException(
         message,
-        DaoErrors.NO_MESSAGE_FOUND
+        MessageDaoErrors.NO_MESSAGE_FOUND
       );
     } catch (err) {
-      throw ErrorHandler.createError(DaoErrors.DB_ERROR_DELETING_MESSAGE, err);
+      throw this.errorHandler.createError(
+        MessageDaoErrors.DB_ERROR_DELETING_MESSAGE,
+        err
+      );
     }
   };
 
@@ -188,13 +202,13 @@ export default class MessageDao implements IMessageDao {
         },
         { new: true }
       );
-      return ErrorHandler.returnObjectOrNullError(
+      return this.errorHandler.sameObjectOrNullException(
         conversation,
-        DaoErrors.NO_CONVERSATION_FOUND
+        MessageDaoErrors.NO_CONVERSATION_FOUND
       );
     } catch (err) {
-      throw ErrorHandler.createError(
-        DaoErrors.DB_ERROR_DELETEING_CONVERSATION,
+      throw this.errorHandler.createError(
+        MessageDaoErrors.DB_ERROR_DELETING_CONVERSATION,
         err
       );
     }

@@ -1,20 +1,68 @@
 import IMessageController from './IMessageController';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, Express } from 'express';
 import { HttpStatusCode } from '../HttpStatusCode';
 import IMessageDao from '../../daos/messages/IMessageDao';
 import IMessage from '../../models/messages/IMessage';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
 import IConversation from '../../models/messages/IConversation';
-export default class MessageController implements IMessageController {
+import AbsBaseController from '../AbsBaseController';
+import IControllerRoute from '../IRoute';
+import { Methods } from '../Methods';
+
+export default class MessageController
+  extends AbsBaseController
+  implements IMessageController
+{
+  protected routes: IControllerRoute[];
+  public readonly path: string;
   private readonly messageDao: IMessageDao;
+
   public constructor(messageDao: IMessageDao) {
+    super();
+    this.path = '/api/v1/users';
     this.messageDao = messageDao;
+    this.routes = [
+      {
+        path: '/:userId/messages',
+        method: Methods.GET,
+        handler: this.findLatestMessagesByUser,
+        localMiddleware: [],
+      },
+      {
+        path: '/:userId/conversations/:conversationId/messages',
+        method: Methods.GET,
+        handler: this.findAllMessagesByConversation,
+        localMiddleware: [],
+      },
+      {
+        path: '/:userId/conversations/',
+        method: Methods.POST,
+        handler: this.createConversation,
+        localMiddleware: [],
+      },
+      {
+        path: '/:userId/messages/',
+        method: Methods.POST,
+        handler: this.createMessage,
+        localMiddleware: [],
+      },
+      {
+        path: '/:userId/messages/:messageId',
+        method: Methods.DELETE,
+        handler: this.deleteMessage,
+        localMiddleware: [],
+      },
+      {
+        path: '/:userId/conversations/:conversationId',
+        method: Methods.DELETE,
+        handler: this.deleteConversation,
+        localMiddleware: [],
+      },
+    ];
     Object.freeze(this);
   }
   createConversation = async (
-    req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>,
-    res: Response<any, Record<string, any>>,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
@@ -30,6 +78,7 @@ export default class MessageController implements IMessageController {
       next(err);
     }
   };
+
   findAllMessagesByConversation = async (
     req: Request,
     res: Response,

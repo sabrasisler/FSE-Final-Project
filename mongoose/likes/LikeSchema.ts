@@ -20,7 +20,7 @@ LikeSchema.post('save', async (doc, next) => {
 });
 
 // Stored procedure that decrements the number of likes a tuit has when a like is deleted.
-LikeSchema.post('remove', async (doc, next) => {
+LikeSchema.post('remove', async (doc) => {
   console.log('minus triggered');
   const tuitId = doc.tuit;
   await TuitModel.updateOne({ _id: tuitId }, { $inc: { likeCount: -1 } });
