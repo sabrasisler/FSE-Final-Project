@@ -10,7 +10,7 @@ import IUser from './IUser';
  * @implements {IUser}.
  */
 
-export default class UserModel implements IUser {
+export default class User implements IUser {
   public readonly username: string;
   public readonly password: string;
   public readonly firstName: string;
@@ -23,7 +23,21 @@ export default class UserModel implements IUser {
   public readonly bio: string;
   public readonly dateOfBirth: Date;
   public readonly location: ILocation;
-
+  /**
+   * Constructs the user object all information related to the user.
+   * @param {string} username the unique username of the user
+   * @param {string} firstName first name
+   * @param {string} lastName last name
+   * @param {string} password password
+   * @param {string} email unique email
+   * @param {string} profilePhoto photo URL string
+   * @param {string} headerImage header image URL string
+   * @param {string} accountType account type
+   * @param {string} bio biography
+   * @param {string} dateOfBirth date of birth
+   * @param {string} longitude longitude
+   * @param {string} latitude latitude
+   */
   public constructor(
     username: string,
     firstName: string,
@@ -35,7 +49,7 @@ export default class UserModel implements IUser {
     accountType: string,
     bio: string,
     dateOfBirth: string,
-    logitude: number,
+    longitude: number,
     latitude: number
   ) {
     this.username = username;
@@ -50,9 +64,14 @@ export default class UserModel implements IUser {
     this.accountStatus = AccountStatus.Active;
     this.bio = bio;
     this.dateOfBirth = new Date(dateOfBirth);
-    this.location = new Location(logitude, latitude);
+    this.location = new Location(longitude, latitude);
     Object.freeze(this);
   }
+  /**
+   * Checks if the input password equals the one in state.
+   * @param password the password
+   * @returns true if the password matches the one state; false if otherwise
+   */
   passwordEquals(password: string): boolean {
     return this.password == password;
   }

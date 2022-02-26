@@ -1,7 +1,19 @@
 import mongoose, { Schema } from 'mongoose';
+import { HttpStatusCode } from '../../controllers/HttpStatusCode';
+import CustomError from '../../errors/CustomError';
 import ILike from '../../models/likes/ILike';
-import TuitModel from '../tuiters/TuitModel';
+import TuitModel from '../tuits/TuitModel';
+import UserModel from '../users/UserModel';
+import LikeModel from './LikeModel';
 
+/**
+ * Mongoose schema for the like resource that takes an {@link ILike} object. The schema contains a user and tuit foreign key references. All fields are required, and created/updated time stamps are added.
+ * @constructor LikeSchema
+ * @param {Schema.Types.ObjectId} user the user foreign key
+ * @param {Schema.Types.ObjectId} tuit the tuit foreign key
+ * @module LikeSchema
+ *
+ */
 const LikeSchema = new mongoose.Schema<ILike>(
   {
     user: { type: Schema.Types.ObjectId, ref: 'UserModel', required: true },
@@ -12,20 +24,10 @@ const LikeSchema = new mongoose.Schema<ILike>(
     collection: 'likes',
   }
 );
-// Stored procedure that increments the number of likes a tuit has when a like is created.
-LikeSchema.post('save', async (doc, next) => {
-  console.log('plus triggered');
-  const tuitId = doc.tuit;
-  await TuitModel.updateOne({ _id: tuitId }, { $inc: { likeCount: +1 } });
-});
 
-// Stored procedure that decrements the number of likes a tuit has when a like is deleted.
-LikeSchema.post('remove', async (doc) => {
-  console.log('minus triggered');
-  const tuitId = doc.tuit;
-  await TuitModel.updateOne({ _id: tuitId }, { $inc: { likeCount: -1 } });
-});
-
+/**
+ * A like document be unique by user and tuit to avoid duplicates.
+ */
 LikeSchema.index(
   {
     user: 1,

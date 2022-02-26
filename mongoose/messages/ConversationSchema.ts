@@ -3,6 +3,17 @@ import { ConversationType } from '../../models/messages/ConversationType';
 import IConversion from '../../models/messages/IConversation';
 import IMessage from '../../models/messages/IMessage';
 
+/**
+ *
+ * A Mongoose conversation schema that takes an {@link IConversation}. The schema acts as an intermediate document between users and messages. It contains meta data about a conversation between two users or a group conversation, such as type of conversation, who created it, who the participants are, and who has removed/deleted the entire conversation for themselves, which still remains visible to other users.
+ *
+ * In addition to the native _id created by MongoDb, the conversationId field ensures the conversation document record is unique to avoid duplicating new conversation documents with the same participants. A DAO working with this schema model is responsible for populating the conversationId with a unique identifier that represents all participants in the conversation, perhaps as a sorted concatenated string of all participants _ids.
+ * @constructor
+ * @param {ConversationType} type the type of this conversation (e.g. PRIVATE or GROUP)
+ * @param {Schema.Types.ObjectId} createdBy the user who created the conversation. Ref to {@link UserModel}.
+ * @param {Schema.Types.ObjectId} participants the users who are part of this conversation. Ref to {@link UserModel}.
+ * @module ConversationSchema
+ */
 const ConversationSchema = new mongoose.Schema<IConversion>(
   {
     type: { type: String, enum: ConversationType, required: true },
@@ -25,24 +36,8 @@ const ConversationSchema = new mongoose.Schema<IConversion>(
         ref: 'UserModel',
       },
     ],
-    //   creator: { type: Schema.Types.ObjectId, ref: 'UserModel', required: true },
-    //   recipient: { type: Schema.Types.ObjectId, ref: 'UserModel', required: true },
-    //   visibleToCreator: { type: Boolean, default: true, required: true },
-    //   visibleToRecipient: { type: Boolean, default: true, required: true },
   },
   { timestamps: true, collection: 'conversations' }
 );
-// ConversationSchema.index(
-//   {
-//     participants: 1,
-//     participants.h
-//   },
-//   { unique: true }
-// );
-export default ConversationSchema;
 
-/**
- * Delete convo: go through all messages that match uid and update visibility of all messages. Now when you pull, get all latest message by convo id that is visible. Should not return any "deleted" convos.
- *
- * Alt: go to convo object, and update visibility. Now when pulling all convo where user matchers participants, we only pull latest messages for visible convo id.
- */
+export default ConversationSchema;

@@ -3,6 +3,24 @@ import IUser from '../../models/users/IUser';
 import { AccountType } from '../../models/users/AccoutType';
 import { AccountStatus } from '../../models/users/AccountStatus';
 
+/**
+ * Mongoose database schema for the user resource, based on an {@link IUser} interface.
+ * @constructor
+ * @param {String} username the unique username of the user
+ * @param {String} firstName first name
+ * @param {String} lastName last name
+ * @param {String} password password
+ * @param {String} email unique email
+ * @param {String} profilePhoto photo URL string
+ * @param {String} headerImage header image URL string
+ * @param {AccountType} accountType account type
+ * @param {AccountStatus} accountStatus account status
+ * @param {String} bio biography
+ * @param {Date} dateOfBirth date of birth
+ * @param {String} longitude longitude
+ * @param {String} latitude latitude
+ * @module UserSchema
+ */
 const UserSchema = new mongoose.Schema<IUser>(
   {
     username: { type: String, required: true },

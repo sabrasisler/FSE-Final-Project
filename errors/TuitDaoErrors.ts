@@ -1,3 +1,8 @@
+/**
+ * @readonly
+ * @enum {string}
+ * Error messages for the tuit DAO used when throwing exceptions.
+ */
 export enum TuitDaoErrors {
   DB_ERROR_CREATING_TUIT = 'Database error creating tuit.',
   TUIT_NOT_FOUND = 'No matching tuit(s) found',

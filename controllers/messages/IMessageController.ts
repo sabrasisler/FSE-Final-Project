@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import IMessageDao from '../../daos/messages/IMessageDao';
+
+/**
+ * Represents the interface of a message resource controller.
+ */
 export default interface IMessageController {
   findAllMessagesByConversation(
     req: Request,

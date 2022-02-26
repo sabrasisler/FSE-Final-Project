@@ -4,65 +4,90 @@ import ILikeDao from './ILikeDao';
 import ILike from '../../models/likes/ILike';
 import IUser from '../../models/users/IUser';
 import ITuit from '../../models/tuits/ITuit';
-import TuitModel from '../../mongoose/tuiters/TuitModel';
 import IErrorHandler from '../../errors/IErrorHandler';
 import { LikeDaoErrors } from '../../errors/LikeDaoErrors';
 
+/**
+ * Handles database CRUD operations for the likes resource. Implements {@link ILikeDao} and works with the mongoose {@link LikeModel} to access the database.
+ */
 export class LikeDao implements ILikeDao {
   private readonly likeModel: Model<ILike>;
   private readonly errorHandler: IErrorHandler;
 
+  /**
+   * Builds the DAO with the injected dependencies of a mongoose like model ({@link LikeModel}) and an error handler.
+   * @param {LikeModel} likeModel the like model for the database operations
+   * @param {IErrorHandler} errorHandler the error handler to process all errors
+   */
   public constructor(likeModel: Model<ILike>, errorHandler: IErrorHandler) {
     this.likeModel = likeModel;
     this.errorHandler = errorHandler;
+    Object.freeze(this); // Make this object immutable.
   }
-  userLikesTuit = async (uid: string, tid: string): Promise<ILike> => {
-    //TODO: Only create if like doesn't exist yet using upsert.
+
+  /**
+   * Creates a like document when a user likes a tuit. Also populates the liked tuit.
+   * @param userId the id of the user
+   * @param tuitId the id of the tuit
+   * @returns the new like document, retrieved from the LikeModel
+   */
+  userLikesTuit = async (userId: string, tuitId: string): Promise<ILike> => {
     try {
-      const like: ILike | null = await this.likeModel
-        .findOneAndUpdate(
-          { user: uid, tuit: tid },
-          { user: uid, tuit: tid },
-          { upsert: true }
-        )
-        .populate('tuit');
+      const like: ILike | null = await (
+        await this.likeModel.create({ user: userId, tuit: tuitId })
+      ).populate('tuit');
       return this.errorHandler.sameObjectOrNullException(
         like,
         LikeDaoErrors.LIKE_NOT_FOUND
       );
     } catch (err) {
-      throw this.errorHandler.createError(LikeDaoErrors.DB_ERROR_LIKE_TUIT);
+      console.log('ERROR: ' + err);
+      throw this.errorHandler.createError(
+        LikeDaoErrors.DB_ERROR_LIKE_TUIT,
+        err
+      );
     }
   };
-  userUnlikesTuit = async (uid: string, tid: string): Promise<ILike> => {
+
+  /**
+   * Deletes a like document for the specified user and tuit, and returns the deleted like with a populated tuit.
+   * @param {string} userId the id of the user
+   * @param {string} tuitId the id of the tuit
+   * @returns the deleted like document, returned from the LikeModel after deletion occurs successfully
+   */
+  userUnlikesTuit = async (userId: string, tuitId: string): Promise<ILike> => {
     try {
       const deletedLike = await this.likeModel
         .remove({
-          user: uid,
-          tuit: tid,
+          user: userId,
+          tuit: tuitId,
         })
         .populate('tuit');
-      if (deletedLike != null) {
-        await TuitModel.updateOne(
-          { _id: deletedLike.tuit },
-          { $inc: { likeCount: -1 } },
-          { new: true }
-        );
-      }
       return this.errorHandler.sameObjectOrNullException(
         deletedLike,
         LikeDaoErrors.DELETED_LIKE_NOT_FOUND
       );
     } catch (err) {
-      throw this.errorHandler.createError(LikeDaoErrors.DB_ERROR_UNLIKE_TUIT);
+      throw this.errorHandler.createError(
+        LikeDaoErrors.DB_ERROR_UNLIKE_TUIT,
+        err
+      );
     }
   };
-  findAllUsersByTuitLike = async (tid: string): Promise<IUser[]> => {
+
+  /**
+   * Finds all users who liked a particular tuit using the tuit id.
+   * @param {string} tuitId the id of the tuit
+   * @returns an array of {@link IUser} documents who have liked the tuit
+   */
+  findAllUsersByTuitLike = async (tuitId: string): Promise<IUser[]> => {
     try {
+      // Get the likes.
       const likes: ILike[] = await this.likeModel
-        .find({ tuit: tid })
+        .find({ tuit: tuitId })
         .populate('user')
         .exec();
+      // Now that we have all the likes, let's extract just the users.
       const users: IUser[] = [];
       likes.map((like) => {
         users.push(like.user);
@@ -78,10 +103,16 @@ export class LikeDao implements ILikeDao {
       );
     }
   };
-  findAllTuitsLikedByUser = async (uid: string): Promise<ITuit[]> => {
+
+  /**
+   * Finds all tuits that a user liked by calling the likeModel. Also Populates the liked tuit.
+   * @param {string} userId the id of the user
+   * @returns an array of {@link ILike} documents with populated {@link ITuit} tuits
+   */
+  findAllTuitsLikedByUser = async (userId: string): Promise<ITuit[]> => {
     try {
       const likes: ILike[] = await this.likeModel
-        .find({ user: uid })
+        .find({ user: userId })
         .populate({ path: 'tuit' })
         .exec();
       const tuits: ITuit[] = [];
@@ -93,7 +124,10 @@ export class LikeDao implements ILikeDao {
         LikeDaoErrors.NO_TUITS_FOUND_FOR_LIKE
       );
     } catch (err) {
-      throw this.errorHandler.createError(LikeDaoErrors.DB_ERROR_TUITS_BY_LIKE);
+      throw this.errorHandler.createError(
+        LikeDaoErrors.DB_ERROR_TUITS_BY_LIKE,
+        err
+      );
     }
   };
 }

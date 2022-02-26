@@ -7,14 +7,21 @@ import AbsBaseController from '../AbsBaseController';
 import IRoute from '../IRoute';
 import { Methods } from '../Methods';
 
+/**
+ * Processes the requests and responses dealing with the user resource. Extends {@link AbsBaseController} and implements {@link IController}.
+ */
 export class UserController extends AbsBaseController implements IController {
   public path: string;
   protected routes: IRoute[];
   private readonly dao: IDao<IUser>;
 
+  /**
+   * Constructs the user controller by calling the super abstract, setting the dao, and configuring the endpoint paths. The endpoint paths are set dynamically when the abstract method setRoutes() is called.
+   * @param dao a user dao that implements {@link IDao}
+   */
   public constructor(dao: IDao<IUser>) {
     super();
-    this.path = 'api/v1';
+    this.path = '/api/v1';
     this.dao = dao;
     this.routes = [
       {
@@ -48,8 +55,16 @@ export class UserController extends AbsBaseController implements IController {
         localMiddleware: [],
       },
     ];
-    Object.freeze(this);
+    Object.freeze(this); // Make this object immutable.
   }
+
+  /**
+   * Calls the dao to find all users and returns them in the response. Passes errors to the next middleware.
+   * @param {Request} req the express request coming from the client
+   * @param {Response} res the express response sent to the client
+   * @param {NextFunction} next the next middleware function for any additional processing
+   * @returns void Promise
+   */
   findAll = async (
     req: Request,
     res: Response,
@@ -62,6 +77,14 @@ export class UserController extends AbsBaseController implements IController {
       next(err);
     }
   };
+
+  /**
+   * Takes the user id from the request params and calls the dao to find the user. Sends the user back to the client, or passes any errors to the next middleware.
+   * @param {Request} req the express request coming from the client
+   * @param {Response} res the express response sent to the client
+   * @param {NextFunction} next the next middleware function for any additional processing
+   * @returns void Promise
+   */
   findById = async (
     req: Request,
     res: Response,
@@ -74,6 +97,14 @@ export class UserController extends AbsBaseController implements IController {
       next(err);
     }
   };
+
+  /**
+   * Takes the details of a user from the client request and calls the dao to create a new user object using the request body. Sends back the new user, or passes any errors to the next function middleware.
+   * @param {Request} req the express request coming from the client
+   * @param {Response} res the express response sent to the client
+   * @param {NextFunction} next the next middleware function for any additional processing
+   * @returns void Promise
+   */
   create = async (
     req: Request,
     res: Response,
@@ -87,6 +118,14 @@ export class UserController extends AbsBaseController implements IController {
       next(err);
     }
   };
+
+  /**
+   * Processes updating a user by calling the dao with the user id and update body from the request object. Sends the updated user object back to the client, or passes any errors to the next function middleware.
+   * @param {Request} req the express request coming from the client
+   * @param {Response} res the express response sent to the client
+   * @param {NextFunction} next the next middleware function for any additional processing
+   * @returns void Promise
+   */
   update = async (
     req: Request,
     res: Response,
@@ -99,6 +138,14 @@ export class UserController extends AbsBaseController implements IController {
       next(err);
     }
   };
+
+  /**
+   * Takes the user id from the request param and calls the dao to delete the user by id. Sends back the deleted user to the client once it is deleted and returned from the dao. Sends any errors to the next function middleware.
+   * @param {Request} req the express request coming from the client
+   * @param {Response} res the express response sent to the client
+   * @param {NextFunction} next the next middleware function for any additional processing
+   * @returns void Promise
+   */
   delete = async (
     req: Request,
     res: Response,

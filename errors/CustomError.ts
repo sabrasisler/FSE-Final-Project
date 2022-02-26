@@ -1,5 +1,8 @@
 import IError from './IError';
 
+/**
+ * A common custom error for the application that extends {@link Error} and implements {@link IError}. Contains additional meta data about the status code of the error and whether the error is operational (that is, an intended application error).
+ */
 export default class CustomError extends Error implements IError {
   public readonly isOperational: boolean;
   public readonly status: number;

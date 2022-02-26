@@ -1,3 +1,8 @@
+/**
+ * @readonly
+ * @enum {string}
+ * Error messages for the message DAO used when throwing exceptions.
+ */
 export enum MessageDaoErrors {
   DB_ERROR_CREATING_MESSAGE = 'Database error creating message.',
   DB_ERROR_RETRIEVING_LAST_CONVERSATION_MESSAGES = 'Database error in retrieving the latest conversation message for user',

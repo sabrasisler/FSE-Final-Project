@@ -1,3 +1,8 @@
+/**
+ * @readonly
+ * @enum {string}
+ * Error messages for the like DAO used when throwing exceptions.
+ */
 export enum LikeDaoErrors {
   LIKE_NOT_FOUND = 'Like Not found in database.',
   DELETED_LIKE_NOT_FOUND = 'Deleted like returned as null from database.',

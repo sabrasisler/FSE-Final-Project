@@ -1,10 +1,13 @@
 import IConversion from '../../models/messages/IConversation';
 import IMessage from '../../models/messages/IMessage';
 
+/**
+ * Common DAO interface operations for the messages resources.
+ */
 export default interface IMessageDao {
   createConversation(conversation: IConversion): Promise<IConversion>;
   createMessage(sender: string, message: IMessage): Promise<IMessage>;
-  findLatestMessagesByUser(userId: string): Promise<any[]>;
+  findLatestMessagesByUser(userId: string): Promise<IMessage[]>;
   findAllMessagesByConversation(
     userId: string,
     conversationId: string

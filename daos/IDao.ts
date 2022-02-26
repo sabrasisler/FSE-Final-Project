@@ -1,3 +1,6 @@
+/**
+ * Represents the generic operations of a DAO. The DAO acts as a layer of abstraction between the controller and the database by performing all the database-related operations.
+ */
 export default interface IDao<T> {
   findAll(): Promise<T[]>;
   findById(id: string): Promise<T>;

@@ -2,6 +2,9 @@ import { AccountStatus } from './AccountStatus';
 import { AccountType } from './AccoutType';
 import { ILocation } from './ILocation';
 
+/**
+ * User entity interface
+ */
 export default interface IUser {
   username: string;
   password: string;
