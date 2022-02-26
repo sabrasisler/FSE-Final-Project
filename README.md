@@ -1,3 +1,3 @@
 # Tuiter API
 
-Navigate the resources of the api on the left navigation menu. When expanding a class in the menu, you can either click the class for general information of click one of its methods for information specific to the method.
+This is a node, express, typescript, mongoose/mongodb api similar to Twitter created for research/experimental purposes only. API design follows SOLID, dependency injection, IoC for loose coupling and extensibility.
