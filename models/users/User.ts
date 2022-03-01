@@ -1,4 +1,3 @@
-import { stringify } from 'querystring';
 import { AccountStatus } from './AccountStatus';
 import { AccountType } from './AccoutType';
 import { ILocation } from './ILocation';
@@ -23,6 +22,8 @@ export default class User implements IUser {
   public readonly bio: string;
   public readonly dateOfBirth: Date;
   public readonly location: ILocation;
+  public readonly followerCount: number;
+  public readonly followeeCount: number;
   /**
    * Constructs the user object all information related to the user.
    * @param {string} username the unique username of the user
@@ -50,7 +51,9 @@ export default class User implements IUser {
     bio: string,
     dateOfBirth: string,
     longitude: number,
-    latitude: number
+    latitude: number,
+    followerCount: number,
+    followeeCount: number
   ) {
     this.username = username;
     this.firstName = firstName;
@@ -65,8 +68,11 @@ export default class User implements IUser {
     this.bio = bio;
     this.dateOfBirth = new Date(dateOfBirth);
     this.location = new Location(longitude, latitude);
+    this.followerCount = followerCount;
+    this.followeeCount = followeeCount;
     Object.freeze(this);
   }
+
   /**
    * Checks if the input password equals the one in state.
    * @param password the password

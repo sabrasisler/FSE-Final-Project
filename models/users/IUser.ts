@@ -6,7 +6,6 @@ import { ILocation } from './ILocation';
  * User entity interface
  */
 export default interface IUser {
-  _id: number;
   username: string;
   password: string;
   firstName: string;
