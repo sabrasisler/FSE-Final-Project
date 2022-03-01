@@ -2,5 +2,6 @@ import IUser from '../users/IUser';
 
 export default interface IFollow {
   follower: IUser;
-  following: IUser;
+  followee: IUser;
+  accepted: boolean;
 }

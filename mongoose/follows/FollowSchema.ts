@@ -12,10 +12,15 @@ import IFollow from '../../models/follows/IFollow';
 const FollowSchema = new mongoose.Schema<IFollow>(
   {
     follower: { type: Schema.Types.ObjectId, ref: 'UserModel', required: true },
-    following: {
+    followee: {
       type: Schema.Types.ObjectId,
       ref: 'UserModel',
       required: true,
+    },
+    accepted: {
+      type: Boolean,
+      required: true,
+      default: false,
     },
   },
   {
@@ -30,7 +35,7 @@ const FollowSchema = new mongoose.Schema<IFollow>(
 FollowSchema.index(
   {
     follower: 1,
-    following: 1,
+    followee: 1,
   },
   {
     unique: true,

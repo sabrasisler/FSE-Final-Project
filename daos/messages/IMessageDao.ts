@@ -8,6 +8,7 @@ export default interface IMessageDao {
   createConversation(conversation: IConversion): Promise<IConversion>;
   createMessage(sender: string, message: IMessage): Promise<IMessage>;
   findLatestMessagesByUser(userId: string): Promise<IMessage[]>;
+  findAllMessagesSentByUser(userId: string): Promise<IMessage[]>;
   findAllMessagesByConversation(
     userId: string,
     conversationId: string

@@ -5,7 +5,7 @@ import ILike from '../../models/likes/ILike';
 import IUser from '../../models/users/IUser';
 import ITuit from '../../models/tuits/ITuit';
 import IErrorHandler from '../../errors/IErrorHandler';
-import { LikeDaoErrors } from '../../errors/LikeDaoErrors';
+import { LikeDaoErrors } from './LikeDaoErrors';
 
 /**
  * Handles database CRUD operations for the likes resource. Implements {@link ILikeDao} and works with the mongoose {@link LikeModel} to access the database.
@@ -36,13 +36,10 @@ export class LikeDao implements ILikeDao {
       const like: ILike | null = await (
         await this.likeModel.create({ user: userId, tuit: tuitId })
       ).populate('tuit');
-      return this.errorHandler.sameObjectOrNullException(
-        like,
-        LikeDaoErrors.LIKE_NOT_FOUND
-      );
+      return this.errorHandler.handleNull(like, LikeDaoErrors.LIKE_NOT_FOUND);
     } catch (err) {
       console.log('ERROR: ' + err);
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         LikeDaoErrors.DB_ERROR_LIKE_TUIT,
         err
       );
@@ -63,12 +60,12 @@ export class LikeDao implements ILikeDao {
           tuit: tuitId,
         })
         .populate('tuit');
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         deletedLike,
         LikeDaoErrors.DELETED_LIKE_NOT_FOUND
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         LikeDaoErrors.DB_ERROR_UNLIKE_TUIT,
         err
       );
@@ -92,12 +89,12 @@ export class LikeDao implements ILikeDao {
       likes.map((like) => {
         users.push(like.user);
       });
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         users,
         LikeDaoErrors.NO_USERS_FOUND_FOR_LIKE
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         LikeDaoErrors.DB_ERROR_USERS_BY_LIKE,
         err
       );
@@ -119,12 +116,12 @@ export class LikeDao implements ILikeDao {
       likes.map((like) => {
         tuits.push(like.tuit);
       });
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         tuits,
         LikeDaoErrors.NO_TUITS_FOUND_FOR_LIKE
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         LikeDaoErrors.DB_ERROR_TUITS_BY_LIKE,
         err
       );

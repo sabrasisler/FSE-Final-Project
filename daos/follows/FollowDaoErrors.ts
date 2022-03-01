@@ -5,4 +5,7 @@ export enum FollowDaoErrors {
   DB_ERROR_USER_UNFOLLOWS_USER = 'Database error in deleting follow.',
   DB_ERROR_FINDING_FOLLOWERS_OF_USER = 'Database errors finding all followers of a user',
   DB_ERROR_FINDING_ALL_USERS_FOLLOWING_USER = 'Database errors finding all users following a user.',
+  DB_ERROR_ACCEPT_FOLLOW = 'Database error in updating accept follow request.',
+  NO_FOLLOW_FOUND = 'No matching follow(s) was found.',
+  DB_ERROR_PENDING_FOLLOWS = 'Database error finding all pending follows for the specified user.',
 }

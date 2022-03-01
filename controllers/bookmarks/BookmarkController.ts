@@ -1,21 +1,18 @@
-import { Request, Response, NextFunction } from 'express';
 import IBookmarkDao from '../../daos/bookmarks/IBookmarkDao';
 import IBookmark from '../../models/bookmarks/IBookmark';
-import AbsBaseController from '../AbsBaseController';
+import HttpRequest from '../HttpRequest';
+import HttpResponse from '../HttpResponse';
 import { HttpStatusCode } from '../HttpStatusCode';
-import IRoute from '../IRoute';
+import IControllerRoute from '../IControllerRoute';
 import { Methods } from '../Methods';
-import IBookMarkController from './IBookController';
+import IBookMarkController from './IBookmarkController';
 
 /**
- * Represents the implementation of an IBookmarkController interface for handling the bookmarks resource api. Also extends the abstract {@link AbsBaseController} class for common functionality, including setRoutes().
+ * Represents the implementation of an IBookmarkController interface for handling the bookmarks resource api.
  */
-export default class BookMarkController
-  extends AbsBaseController
-  implements IBookMarkController
-{
-  public path: string;
-  protected routes: IRoute[];
+export default class BookMarkController implements IBookMarkController {
+  public readonly path: string;
+  public readonly routes: IControllerRoute[];
   private bookmarkDao: IBookmarkDao;
 
   /** Constructs the bookmark controller with an injected IBookmarkDao interface implementation. Defines the endpoint paths, middleware, method types, and handler methods associated with each endpoint. These definitions are later used by the setRoutes() method to wire the app to each endpoint.
@@ -23,7 +20,6 @@ export default class BookMarkController
    * @param {IBookmarkDao} bookmarkDao a bookmark dao implementing the BookmarkDao interface used to find resources in the database.
    */
   public constructor(bookmarkDao: IBookmarkDao) {
-    super();
     this.path = '/api/v1';
     this.bookmarkDao = bookmarkDao;
     this.routes = [
@@ -45,7 +41,14 @@ export default class BookMarkController
         handler: this.delete,
         localMiddleware: [],
       },
+      {
+        path: '/users/:userId/bookmarks/',
+        method: Methods.DELETE,
+        handler: this.deleleAllByUser,
+        localMiddleware: [],
+      },
     ];
+    Object.freeze(this); // Make thi obj immutable.
   }
 
   /**
@@ -54,20 +57,10 @@ export default class BookMarkController
    * @param {Response} res the express response sent to the client
    * @param {NextFunction} next the next middleware function for any
    */
-  create = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const newBookmark: IBookmark = await this.bookmarkDao.create(
-        req.params.userId,
-        req.params.tuitId
-      );
-      res.status(HttpStatusCode.ok).json(newBookmark);
-    } catch (err) {
-      next(err);
-    }
+  create = async (req: HttpRequest): Promise<HttpResponse> => {
+    return {
+      body: await this.bookmarkDao.create(req.params.userId, req.params.tuitId),
+    };
   };
 
   /**
@@ -76,19 +69,8 @@ export default class BookMarkController
    * @param {Response} res the express response sent to the client
    * @param {NextFunction} next the next middleware function for any
    */
-  findAllByUser = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const bookmarks: IBookmark[] = await this.bookmarkDao.findAllByUser(
-        req.params.userId
-      );
-      res.status(HttpStatusCode.ok).json(bookmarks);
-    } catch (err) {
-      next(err);
-    }
+  findAllByUser = async (req: HttpRequest): Promise<HttpResponse> => {
+    return { body: await this.bookmarkDao.findAllByUser(req.params.userId) };
   };
 
   /**
@@ -97,18 +79,14 @@ export default class BookMarkController
    * @param {Response} res the express response sent to the client
    * @param {NextFunction} next the next middleware function for any
    */
-  delete = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const deletedBookmark: IBookmark = await this.bookmarkDao.delete(
-        req.params.bookmarkId
-      );
-      res.status(HttpStatusCode.ok).json(deletedBookmark);
-    } catch (err) {
-      next(err);
-    }
+  delete = async (req: HttpRequest): Promise<HttpResponse> => {
+    return { body: await this.bookmarkDao.delete(req.params.bookmarkId) };
+  };
+
+  deleleAllByUser = async (req: HttpRequest): Promise<HttpResponse> => {
+    const deletedCount: number = await this.bookmarkDao.deleteAllByUser(
+      req.params.userId
+    );
+    return { body: deletedCount };
   };
 }

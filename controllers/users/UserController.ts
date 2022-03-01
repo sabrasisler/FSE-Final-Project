@@ -1,26 +1,24 @@
-import { NextFunction, Request, Response } from 'express';
-import IController from '../IController';
+import IGenericController from '../IGenericController';
 import IDao from '../../daos/IDao';
 import IUser from '../../models/users/IUser';
-import { HttpStatusCode } from '../HttpStatusCode';
-import AbsBaseController from '../AbsBaseController';
-import IRoute from '../IRoute';
 import { Methods } from '../Methods';
+import HttpRequest from '../HttpRequest';
+import HttpResponse from '../HttpResponse';
+import IControllerRoute from '../IControllerRoute';
 
 /**
- * Processes the requests and responses dealing with the user resource. Extends {@link AbsBaseController} and implements {@link IController}.
+ * Processes the requests and responses dealing with the user resource. Implements {@link IController}.
  */
-export class UserController extends AbsBaseController implements IController {
-  public path: string;
-  protected routes: IRoute[];
+export class UserController implements IGenericController {
+  public readonly path: string;
+  public readonly routes: IControllerRoute[];
   private readonly dao: IDao<IUser>;
 
   /**
-   * Constructs the user controller by calling the super abstract, setting the dao, and configuring the endpoint paths. The endpoint paths are set dynamically when the abstract method setRoutes() is called.
+   * Constructs the user controller by calling the super abstract, setting the dao, and configuring the endpoint paths.
    * @param dao a user dao that implements {@link IDao}
    */
   public constructor(dao: IDao<IUser>) {
-    super();
     this.path = '/api/v1';
     this.dao = dao;
     this.routes = [
@@ -60,102 +58,50 @@ export class UserController extends AbsBaseController implements IController {
 
   /**
    * Calls the dao to find all users and returns them in the response. Passes errors to the next middleware.
-   * @param {Request} req the express request coming from the client
-   * @param {Response} res the express response sent to the client
-   * @param {NextFunction} next the next middleware function for any additional processing
-   * @returns void Promise
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
    */
-  findAll = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const allUsers: IUser[] | null = await this.dao.findAll();
-      res.status(200).json(allUsers);
-    } catch (err) {
-      next(err);
-    }
+  findAll = async (req: HttpRequest): Promise<HttpResponse> => {
+    return {
+      body: await this.dao.findAll(),
+    };
   };
 
   /**
    * Takes the user id from the request params and calls the dao to find the user. Sends the user back to the client, or passes any errors to the next middleware.
-   * @param {Request} req the express request coming from the client
-   * @param {Response} res the express response sent to the client
-   * @param {NextFunction} next the next middleware function for any additional processing
-   * @returns void Promise
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
    */
-  findById = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const existingUser: IUser = await this.dao.findById(req.params.userId);
-      res.status(HttpStatusCode.ok).json(existingUser);
-    } catch (err) {
-      next(err);
-    }
+  findById = async (req: HttpRequest): Promise<HttpResponse> => {
+    //
+    return { body: await this.dao.findById(req.params.userId) };
   };
 
   /**
    * Takes the details of a user from the client request and calls the dao to create a new user object using the request body. Sends back the new user, or passes any errors to the next function middleware.
-   * @param {Request} req the express request coming from the client
-   * @param {Response} res the express response sent to the client
-   * @param {NextFunction} next the next middleware function for any additional processing
-   * @returns void Promise
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
    */
-  create = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+  create = async (req: HttpRequest): Promise<HttpResponse> => {
     const data = { ...req.body, uid: req.params.userId };
-    try {
-      const newUser: IUser = await this.dao.create(data);
-      res.status(HttpStatusCode.ok).json(newUser);
-    } catch (err) {
-      next(err);
-    }
+    return { body: await this.dao.create(data) };
   };
 
   /**
    * Processes updating a user by calling the dao with the user id and update body from the request object. Sends the updated user object back to the client, or passes any errors to the next function middleware.
-   * @param {Request} req the express request coming from the client
-   * @param {Response} res the express response sent to the client
-   * @param {NextFunction} next the next middleware function for any additional processing
-   * @returns void Promise
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
    */
-  update = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const updatedUser = await this.dao.update(req.params.userId, req.body);
-      res.status(HttpStatusCode.ok).json(updatedUser);
-    } catch (err) {
-      next(err);
-    }
+  update = async (req: HttpRequest): Promise<HttpResponse> => {
+    return { body: await this.dao.update(req.params.userId, req.body) };
   };
 
   /**
    * Takes the user id from the request param and calls the dao to delete the user by id. Sends back the deleted user to the client once it is deleted and returned from the dao. Sends any errors to the next function middleware.
-   * @param {Request} req the express request coming from the client
-   * @param {Response} res the express response sent to the client
-   * @param {NextFunction} next the next middleware function for any additional processing
-   * @returns void Promise
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
    */
-  delete = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const deletedUser = await this.dao.delete(req.params.userId);
-      res.status(HttpStatusCode.ok).json(deletedUser);
-    } catch (err) {
-      next(err);
-    }
+  delete = async (req: HttpRequest): Promise<HttpResponse> => {
+    return { body: await this.dao.delete(req.params.userId) };
   };
 }

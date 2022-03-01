@@ -3,7 +3,7 @@ import IConversation from '../../models/messages/IConversation';
 import IMessage from '../../models/messages/IMessage';
 import IErrorHandler from '../../errors/IErrorHandler';
 import IMessageDao from './IMessageDao';
-import { MessageDaoErrors } from '../../errors/MessageDaoErrors';
+import { MessageDaoErrors } from './MessageDaoErrors';
 
 /**
  * DAO database CRUD operations for the messages resources. Implements {@link IMessage}. Takes a {@link MessageModel}, {@link ConversationModel}, and {@link IErrorHandler} as injected dependencies.
@@ -46,7 +46,7 @@ export default class MessageDao implements IMessageDao {
       });
       return await convo.populate('createdBy');
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         MessageDaoErrors.DB_ERROR_CREATING_CONVERSATION,
         err
       );
@@ -69,7 +69,7 @@ export default class MessageDao implements IMessageDao {
         _id: message.conversation,
         participants: { $in: [sender] },
       });
-      this.errorHandler.sameObjectOrNullException(
+      this.errorHandler.handleNull(
         existingConvo,
         MessageDaoErrors.INVALID_CONVERSATION
       );
@@ -80,7 +80,7 @@ export default class MessageDao implements IMessageDao {
       });
       return await dbMessage.populate('sender');
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         MessageDaoErrors.DB_ERROR_CREATING_MESSAGE,
         err
       );
@@ -104,7 +104,7 @@ export default class MessageDao implements IMessageDao {
         participants: { $in: [userId] },
       });
 
-      this.errorHandler.sameObjectOrNullException(
+      this.errorHandler.handleNull(
         existingConvo,
         MessageDaoErrors.INVALID_CONVERSATION
       );
@@ -113,13 +113,13 @@ export default class MessageDao implements IMessageDao {
         conversation: conversationId,
         removeFor: { $nin: [userId] },
       });
-      this.errorHandler.sameObjectOrNullException(
+      this.errorHandler.handleNull(
         allMessagesForConversation,
         MessageDaoErrors.NO_MATCHING_MESSAGES
       );
       return allMessagesForConversation;
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         MessageDaoErrors.DB_ERROR_GETTING_CONVERSATION_MESSAGES,
         err
       );
@@ -209,13 +209,26 @@ export default class MessageDao implements IMessageDao {
       ]);
       return convo;
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         MessageDaoErrors.DB_ERROR_RETRIEVING_LAST_CONVERSATION_MESSAGES,
         err
       );
     }
   };
 
+  findAllMessagesSentByUser = async (userId: string): Promise<IMessage[]> => {
+    try {
+      const messages: IMessage[] = await this.messageModel.find({
+        sender: userId,
+      });
+      return messages;
+    } catch (err) {
+      throw this.errorHandler.handleError(
+        MessageDaoErrors.DB_ERROR_ALL_MESSAGES_SENT_BY_USER,
+        err
+      );
+    }
+  };
   /**
    * Remove a message for a particular user by finding the message in the database, and placing the user id in the array of removedFor. The message is not technically deleted, and the user is placed in the array of people for whom the message is no longer visible.
    * @param {string} userId the id of the user requesting to delete the message
@@ -235,12 +248,12 @@ export default class MessageDao implements IMessageDao {
           $addToSet: { removeFor: userId }, // only unique entries in the array allowed
         }
       );
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         message,
         MessageDaoErrors.NO_MESSAGE_FOUND
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         MessageDaoErrors.DB_ERROR_DELETING_MESSAGE,
         err
       );
@@ -261,12 +274,12 @@ export default class MessageDao implements IMessageDao {
         },
         { new: true }
       );
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         conversation,
         MessageDaoErrors.NO_CONVERSATION_FOUND
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         MessageDaoErrors.DB_ERROR_DELETING_CONVERSATION,
         err
       );

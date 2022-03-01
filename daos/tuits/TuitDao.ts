@@ -1,8 +1,8 @@
 import ITuitDao from './ITuitDao';
-import mongoose, { Model, Schema } from 'mongoose';
+import { Model } from 'mongoose';
 import ITuit from '../../models/tuits/ITuit';
 import IErrorHandler from '../../errors/IErrorHandler';
-import { TuitDaoErrors } from '../../errors/TuitDaoErrors';
+import { TuitDaoErrors } from './TuitDaoErrors';
 
 /**
  * DAO database CRUD operations for the tuit resource. Takes the injected dependencies of a {@link Model<ITuit>} ORM model and an {@link IErrorHandler} error handler.
@@ -32,12 +32,9 @@ export default class TuitDao implements ITuitDao {
       const tuit = await this.model
         .findOne({ author: userId })
         .populate('author');
-      return this.errorHandler.sameObjectOrNullException(
-        tuit,
-        TuitDaoErrors.TUIT_NOT_FOUND
-      );
+      return this.errorHandler.handleNull(tuit, TuitDaoErrors.TUIT_NOT_FOUND);
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_FINDING_TUITS,
         err
       );
@@ -49,11 +46,10 @@ export default class TuitDao implements ITuitDao {
    * @returns an array of tuits
    */
   findAll = async (): Promise<ITuit[]> => {
-    console.log('called');
     try {
-      return await this.model.find();
+      return await this.model.find().populate('author');
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_FINDING_TUITS,
         err
       );
@@ -68,12 +64,9 @@ export default class TuitDao implements ITuitDao {
   findById = async (tuitId: string): Promise<ITuit> => {
     try {
       const tuit = await this.model.findById(tuitId);
-      return this.errorHandler.sameObjectOrNullException(
-        tuit,
-        TuitDaoErrors.TUIT_NOT_FOUND
-      );
+      return this.errorHandler.handleNull(tuit, TuitDaoErrors.TUIT_NOT_FOUND);
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_FINDING_TUITS,
         err
       );
@@ -93,7 +86,7 @@ export default class TuitDao implements ITuitDao {
       });
       return newTuit;
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_CREATING_TUIT,
         err
       );
@@ -115,12 +108,12 @@ export default class TuitDao implements ITuitDao {
           new: true,
         }
       );
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         updatedTuit,
         TuitDaoErrors.TUIT_NOT_FOUND
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_UPDATING_TUIT,
         err
       );
@@ -135,12 +128,12 @@ export default class TuitDao implements ITuitDao {
   delete = async (tuitId: string): Promise<ITuit> => {
     try {
       const deletedTuit = await this.model.findByIdAndDelete(tuitId);
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         deletedTuit,
         TuitDaoErrors.TUIT_NOT_FOUND
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_DELETING_TUIT,
         err
       );

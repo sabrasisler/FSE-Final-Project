@@ -1,6 +1,5 @@
-import CustomError from '../../errors/CustomError';
 import IDao from '../IDao';
-import { UserDaoErrors } from '../../errors/UserDaoErrors';
+import { UserDaoErrors } from './UserDaoErrors';
 import { Model } from 'mongoose';
 import IUser from '../../models/users/IUser';
 import IErrorHandler from '../../errors/IErrorHandler';
@@ -30,12 +29,12 @@ export default class UserDao implements IDao<IUser> {
   findAll = async (): Promise<IUser[]> => {
     try {
       const dbUsers = await this.model.find().exec();
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         dbUsers,
         UserDaoErrors.USER_NOT_FOUND
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         UserDaoErrors.DB_ERROR_FINDING_ALL_USERS,
         err
       );
@@ -50,12 +49,12 @@ export default class UserDao implements IDao<IUser> {
   findById = async (uid: string): Promise<IUser> => {
     try {
       const dbUser: IUser | null = await this.model.findById(uid);
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         dbUser,
         UserDaoErrors.USER_DOES_NOT_EXIST
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         UserDaoErrors.DB_ERROR_FINDING_USER,
         err
       );
@@ -77,12 +76,12 @@ export default class UserDao implements IDao<IUser> {
           new: true,
         }
       );
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         newUser,
         UserDaoErrors.USER_NOT_FOUND
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         UserDaoErrors.DB_ERROR_CREATING_USER,
         err
       );
@@ -104,12 +103,12 @@ export default class UserDao implements IDao<IUser> {
           new: true,
         }
       );
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         updatedUser,
         UserDaoErrors.NO_USER_TO_UPDATE
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         UserDaoErrors.DB_ERROR_CREATING_USER,
         err
       );
@@ -124,12 +123,12 @@ export default class UserDao implements IDao<IUser> {
   delete = async (uid: string): Promise<IUser> => {
     try {
       const deletedUser: IUser | null = await this.model.findByIdAndDelete(uid);
-      return this.errorHandler.sameObjectOrNullException(
+      return this.errorHandler.handleNull(
         deletedUser,
         UserDaoErrors.USER_DOES_NOT_EXIST
       );
     } catch (err) {
-      throw this.errorHandler.createError(
+      throw this.errorHandler.handleError(
         UserDaoErrors.CANNOT_DELETE_USER,
         err
       );

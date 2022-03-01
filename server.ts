@@ -1,8 +1,7 @@
 import express, { RequestHandler } from 'express';
 import Server from './config/Server';
-import CommonErrorHandler from './errors/CommonErrorHandler';
+import DaoErrorHandler from './errors/DaoErrorHandler';
 import mongoose from 'mongoose';
-import IBaseController from './controllers/IBaseController';
 import MessageController from './controllers/messages/MessageController';
 import MessageDao from './daos/messages/MessageDao';
 import ConversationModel from './mongoose/messages/ConversationModel';
@@ -20,32 +19,40 @@ import LikeController from './controllers/likes/LikeController';
 import BookMarkController from './controllers/bookmarks/BookmarkController';
 import BookmarkDao from './daos/bookmarks/BookmarkDao';
 import BookmarkModel from './mongoose/bookmarks/BookmarkModel';
+import ExpressAdapter from './config/ExpressAdapter';
+import IBaseController from './controllers/IBaseController';
+import FollowController from './controllers/follows/FollowController';
+import FollowDao from './daos/follows/FollowDao';
+import FollowModel from './mongoose/follows/FollowModel';
 
 const app = express();
-const primaryMiddleware: Array<RequestHandler> = [
+
+const globalMiddleware: Array<RequestHandler> = [
   express.json(),
   //   cors({ credentials: true, origin: true }),
 ];
-// Middleware and Helpers
-const errorHandler: IErrorHandler = new CommonErrorHandler();
-const secondaryMiddleware = [errorHandler.handleCentralError];
-// Controllers
-const controllers: Array<IBaseController> = [
-  new UserController(new UserDao(UserModel, errorHandler)),
-  new TuitController(new TuitDao(TuitModel, errorHandler)),
+const daoErrorHandler: IErrorHandler = new DaoErrorHandler();
+
+const allControllers: IBaseController[] = [
+  new UserController(new UserDao(UserModel, daoErrorHandler)),
+  new TuitController(new TuitDao(TuitModel, daoErrorHandler)),
   new MessageController(
-    new MessageDao(MessageModel, ConversationModel, errorHandler)
+    new MessageDao(MessageModel, ConversationModel, daoErrorHandler)
   ),
-  new LikeController(new LikeDao(LikeModel, errorHandler)),
-  new BookMarkController(new BookmarkDao(BookmarkModel, errorHandler)),
+  new LikeController(new LikeDao(LikeModel, daoErrorHandler)),
+  new BookMarkController(new BookmarkDao(BookmarkModel, daoErrorHandler)),
+  new FollowController(new FollowDao(FollowModel, daoErrorHandler)),
 ];
+const expressAdapter: ExpressAdapter = new ExpressAdapter(
+  app,
+  globalMiddleware,
+  allControllers
+);
 // Set up server and initialize resources.
-const server: Server = new Server(app, 4000, mongoose, controllers);
+const server: Server = new Server(app, 4000, mongoose, expressAdapter);
 Promise.resolve().then(() =>
   server.initDatabase().then(() => {
-    server.loadGlobalMiddleware(primaryMiddleware);
-    server.loadControllers();
-    server.loadGlobalMiddleware(secondaryMiddleware);
+    server.initControllers();
     server.run();
   })
 );

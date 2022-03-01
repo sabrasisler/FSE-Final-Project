@@ -1,13 +1,12 @@
 import mongoose, { Schema } from 'mongoose';
 import { HttpStatusCode } from '../../controllers/HttpStatusCode';
-import CustomError from '../../errors/CustomError';
 import ILike from '../../models/likes/ILike';
 import TuitModel from '../tuits/TuitModel';
 import UserModel from '../users/UserModel';
 import LikeModel from './LikeModel';
 
 /**
- * Mongoose schema for the like resource that takes an {@link ILike} object. The schema contains a user and tuit foreign key references. All fields are required, and created/updated time stamps are added.
+ * Mongoose schema for the likes resource that takes an {@link ILike} object. The schema contains a user and tuit foreign key references. All fields are required, and created/updated time stamps are added.
  * @constructor LikeSchema
  * @param {Schema.Types.ObjectId} user the user foreign key
  * @param {Schema.Types.ObjectId} tuit the tuit foreign key

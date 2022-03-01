@@ -6,6 +6,7 @@ import { ILocation } from './ILocation';
  * User entity interface
  */
 export default interface IUser {
+  _id: number;
   username: string;
   password: string;
   firstName: string;
@@ -18,5 +19,8 @@ export default interface IUser {
   bio: string;
   dateOfBirth: Date;
   location: ILocation;
+  followerCount: number;
+  followeeCount: number;
+
   passwordEquals(password: string): boolean;
 }
