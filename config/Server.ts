@@ -39,7 +39,7 @@ export default class Server {
    * @returns void Promise
    */
   initDatabase = async (): Promise<void> => {
-    await this.db
+    this.db
       .connect(process.env.MONGO_URL!)
       .then(() => {
         console.log('db connection successful.');
