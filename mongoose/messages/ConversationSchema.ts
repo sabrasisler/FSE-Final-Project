@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { ConversationType } from '../../models/messages/ConversationType';
 import IConversion from '../../models/messages/IConversation';
-import IMessage from '../../models/messages/IMessage';
+import { formatJSON } from '../util/formatJSON';
 
 /**
  *
@@ -40,4 +40,5 @@ const ConversationSchema = new mongoose.Schema<IConversion>(
   { timestamps: true, collection: 'conversations' }
 );
 
+formatJSON(ConversationSchema);
 export default ConversationSchema;

@@ -1,6 +1,11 @@
 import mongoose, { Schema } from 'mongoose';
+import MongooseException from '../../errors/MongooseException';
 import ITuit from '../../models/tuits/ITuit';
+import BookmarkModel from '../bookmarks/BookmarkModel';
+import LikeModel from '../likes/LikeModel';
+import UserModel from '../users/UserModel';
 import UserSchema from '../users/UserSchema';
+import { formatJSON } from '../util/formatJSON';
 
 /**
  *  Mongoose database schema for the tuit resource, based on an {@link ITuit} interface.
@@ -37,4 +42,22 @@ TuitSchema.index(
   }
 );
 
+/**
+ * Check if user/author FK is valid before creating tuit.
+ */
+TuitSchema.pre('save', function (next) {
+  const existingUser = UserModel.findById(this.author);
+  if (existingUser === null) {
+    throw new MongooseException('Author is not an existing user.');
+  }
+});
+/**
+ * Delete all the likes and bookmarks for this tuit.
+ */
+TuitSchema.post('remove', async function (next) {
+  await LikeModel.deleteMany({ tuit: this._id });
+  await BookmarkModel.deleteMany({ tuit: this._id });
+});
+
+formatJSON(UserSchema);
 export default TuitSchema;

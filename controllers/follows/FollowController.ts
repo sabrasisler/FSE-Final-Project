@@ -1,10 +1,12 @@
 import IFollowDao from '../../daos/follows/IFollowDao';
 import IFollow from '../../models/follows/IFollow';
 import IUser from '../../models/users/IUser';
-import HttpRequest from '../HttpRequest';
-import HttpResponse from '../HttpResponse';
-import IControllerRoute from '../IControllerRoute';
-import { Methods } from '../Methods';
+import IFollowService from '../../services/shared/IFollowService';
+import { createOkResponse } from '../shared/createHttpResponse';
+import HttpRequest from '../shared/HttpRequest';
+import HttpResponse from '../shared/HttpResponse';
+import IControllerRoute from '../shared/IControllerRoute';
+import { Methods } from '../shared/Methods';
 import IFollowController from './IFollowController';
 
 /**
@@ -26,38 +28,32 @@ export default class FollowController implements IFollowController {
       {
         path: '/users/:userId/follows',
         method: Methods.POST,
-        handler: this.userFollowsUser,
-        localMiddleware: [],
+        handler: this.createFollow,
       },
       {
         path: '/users/:userId/follows',
         method: Methods.DELETE,
-        handler: this.userUnfollowsUser,
-        localMiddleware: [],
+        handler: this.deleteFollow,
       },
       {
         path: '/users/:userId/followers',
         method: Methods.GET,
         handler: this.findAllUsersFollowingUser,
-        localMiddleware: [],
       },
       {
         path: '/users/:userId/following',
         method: Methods.GET,
         handler: this.findAllUsersThatUserIsFollowing,
-        localMiddleware: [],
       },
       {
         path: '/users/:userId/follows/pending',
         method: Methods.GET,
         handler: this.findAllPendingFollows,
-        localMiddleware: [],
       },
       {
-        path: '/users/:userId/follows/:followId',
+        path: '/users/:userId/follows',
         method: Methods.PUT,
         handler: this.acceptFollow,
-        localMiddleware: [],
       },
     ];
   }
@@ -66,14 +62,12 @@ export default class FollowController implements IFollowController {
    * @param {HttpRequest} req the request object containing client data
    * @returns {HttpResponse} a response object with the new follow
    */
-  userFollowsUser = async (req: HttpRequest): Promise<HttpResponse> => {
-    const newFollow: IFollow = await this.followDao.userFollowsUser(
+  createFollow = async (req: HttpRequest): Promise<HttpResponse> => {
+    const newFollow: IFollow = await this.followDao.createFollow(
       req.params.userId,
       req.body.followeeId
     );
-    return {
-      body: newFollow,
-    };
+    return createOkResponse(newFollow);
   };
 
   /**
@@ -81,8 +75,8 @@ export default class FollowController implements IFollowController {
    * @param {HttpRequest} req the request object containing client data
    * @returns {HttpResponse} a response object with the deleted follow
    */
-  userUnfollowsUser = async (req: HttpRequest): Promise<HttpResponse> => {
-    const deletedFollow: IFollow = await this.followDao.userUnfollowsUser(
+  deleteFollow = async (req: HttpRequest): Promise<HttpResponse> => {
+    const deletedFollow: IFollow = await this.followDao.deleteFollow(
       req.params.userId,
       req.body.followeeId
     );
@@ -95,9 +89,7 @@ export default class FollowController implements IFollowController {
   ): Promise<HttpResponse> => {
     const allFollowees: IUser[] =
       await this.followDao.findAllUsersThatUserIsFollowing(req.params.userId);
-    return {
-      body: allFollowees,
-    };
+    return createOkResponse(allFollowees);
   };
 
   /**
@@ -110,9 +102,7 @@ export default class FollowController implements IFollowController {
   ): Promise<HttpResponse> => {
     const allFollowers: IUser[] =
       await this.followDao.findAllUsersFollowingUser(req.params.userId);
-    return {
-      body: allFollowers,
-    };
+    return createOkResponse(allFollowers);
   };
 
   /**
@@ -136,11 +126,9 @@ export default class FollowController implements IFollowController {
    */
   acceptFollow = async (req: HttpRequest): Promise<HttpResponse> => {
     const updatedAcceptedFollow: IFollow = await this.followDao.acceptFollow(
-      req.params.userId,
-      req.params.followId
+      req.body.followerId,
+      req.params.userId
     );
-    return {
-      body: updatedAcceptedFollow,
-    };
+    return createOkResponse(updatedAcceptedFollow);
   };
 }

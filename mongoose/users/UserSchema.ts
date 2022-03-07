@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import IUser from '../../models/users/IUser';
 import { AccountType } from '../../models/users/AccoutType';
 import { AccountStatus } from '../../models/users/AccountStatus';
+import { formatJSON } from '../util/formatJSON';
 
 /**
  * Mongoose database schema for the user resource, based on an {@link IUser} interface.
@@ -27,12 +28,12 @@ const UserSchema = new mongoose.Schema<IUser>(
     firstName: { type: String, required: true },
     lastName: { type: String },
     password: { type: String, select: false, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, select: false, required: true, unique: true },
     bio: { type: String },
     dateOfBirth: { type: Date, required: true, select: false },
     headerImage: { type: String },
     profilePhoto: { type: String },
-    location: { longitude: String, latitude: String, select: false },
+    // location: { longitude: String, latitude: String, select: false },
     accountType: {
       type: String,
       enum: AccountType,
@@ -42,13 +43,14 @@ const UserSchema = new mongoose.Schema<IUser>(
     accountStatus: {
       type: String,
       enum: AccountStatus,
-      required: true,
       default: AccountStatus.Active,
     },
     followerCount: { type: Number, default: 0 },
     followeeCount: { type: Number, default: 0 },
   },
+
   { timestamps: true, collection: 'users' }
 );
 
+formatJSON(UserSchema);
 export default UserSchema;

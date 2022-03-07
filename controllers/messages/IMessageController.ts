@@ -1,6 +1,6 @@
-import HttpRequest from '../HttpRequest';
-import HttpResponse from '../HttpResponse';
-import IBaseController from '../IBaseController';
+import HttpRequest from '../shared/HttpRequest';
+import HttpResponse from '../shared/HttpResponse';
+import IBaseController from '../shared/IBaseController';
 
 /**
  * Represents the interface of a message resource controller.

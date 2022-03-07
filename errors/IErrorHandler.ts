@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpStatusCode } from '../controllers/HttpStatusCode';
+import { HttpStatusCode } from '../controllers/shared/HttpStatusCode';
 import IError from './IError';
 
 /**

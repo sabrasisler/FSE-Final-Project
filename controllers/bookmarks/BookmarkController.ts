@@ -1,10 +1,10 @@
 import IBookmarkDao from '../../daos/bookmarks/IBookmarkDao';
 import IBookmark from '../../models/bookmarks/IBookmark';
-import HttpRequest from '../HttpRequest';
-import HttpResponse from '../HttpResponse';
-import { HttpStatusCode } from '../HttpStatusCode';
-import IControllerRoute from '../IControllerRoute';
-import { Methods } from '../Methods';
+import HttpRequest from '../shared/HttpRequest';
+import HttpResponse from '../shared/HttpResponse';
+import { HttpStatusCode } from '../shared/HttpStatusCode';
+import IControllerRoute from '../shared/IControllerRoute';
+import { Methods } from '../shared/Methods';
 import IBookMarkController from './IBookmarkController';
 
 /**
@@ -27,25 +27,21 @@ export default class BookMarkController implements IBookMarkController {
         path: '/users/:userId/tuits/:tuitId/bookmarks',
         method: Methods.POST,
         handler: this.create,
-        localMiddleware: [],
       },
       {
         path: '/users/:userId/bookmarks',
         method: Methods.GET,
         handler: this.findAllByUser,
-        localMiddleware: [],
       },
       {
         path: '/bookmarks/:bookmarkId',
         method: Methods.DELETE,
         handler: this.delete,
-        localMiddleware: [],
       },
       {
         path: '/users/:userId/bookmarks/',
         method: Methods.DELETE,
         handler: this.deleleAllByUser,
-        localMiddleware: [],
       },
     ];
     Object.freeze(this); // Make thi obj immutable.

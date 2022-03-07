@@ -1,7 +1,7 @@
-import IGenericController from '../IGenericController';
+import IGenericController from '../shared/IGenericController';
 import { NextFunction, Request, Response } from 'express';
-import HttpResponse from '../HttpResponse';
-import HttpRequest from '../HttpRequest';
+import HttpResponse from '../shared/HttpResponse';
+import HttpRequest from '../shared/HttpRequest';
 
 /**
  * Represents the interface functionality of a tuit controller to handle requests and responses for the tuit resource.

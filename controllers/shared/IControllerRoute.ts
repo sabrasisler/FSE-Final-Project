@@ -10,9 +10,4 @@ export default interface IControllerRoute {
   path: string;
   method: Methods;
   handler: (req: HttpRequest) => Promise<HttpResponse>;
-  localMiddleware: ((
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void)[];
 }

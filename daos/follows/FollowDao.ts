@@ -29,7 +29,7 @@ export default class FollowDao implements IFollowDao {
    * @param {string} followee
    * @returns {Promise<IFollow>} the new follow promise document
    */
-  userFollowsUser = async (
+  createFollow = async (
     follower: string,
     followee: string
   ): Promise<IFollow> => {
@@ -52,15 +52,20 @@ export default class FollowDao implements IFollowDao {
    * @param {string} followee
    * @returns {Promise<IFollow>} the deleted follow promise document
    */
-  userUnfollowsUser = async (
+  deleteFollow = async (
     follower: string,
     followee: string
   ): Promise<IFollow> => {
     try {
-      const deletedFollow = await this.followModel.findOneAndDelete({
+      const deletedFollow = await this.followModel.findOne({
         follower: follower,
         followee: followee,
       });
+      this.errorHandler.handleNull(
+        deletedFollow,
+        FollowDaoErrors.NO_FOLLOW_FOUND
+      );
+      await deletedFollow?.remove(); // trigger pre remove hook in schema
       return this.errorHandler.handleNull(
         deletedFollow,
         FollowDaoErrors.NO_FOLLOW_FOUND_TO_DELETE
@@ -117,21 +122,24 @@ export default class FollowDao implements IFollowDao {
 
   /**
    * Update a follow document by changing the accepted field to true using the id of the user who is being followed and the id of the follow document.
-   * @param {string} userId the id of the user being followed who is accepting the follow request
-   * @param {string} followId the id of the follow document
+   * @param {string} followerId the id of the user being followed who is accepting the follow request
+   * @param {string} followeeId the id of the follow document
    * @returns {Promise<IFollow>} the updated follow document
    */
-  acceptFollow = async (userId: string, followId: string): Promise<IFollow> => {
+  acceptFollow = async (
+    followerId: string,
+    followeeId: string
+  ): Promise<IFollow> => {
     try {
-      const updatedFollow = await this.followModel.findOneAndUpdate(
+      const updatedFollow = await this.followModel.findOne(
         {
-          _id: followId,
-          followee: userId,
+          follower: followerId,
+          followee: followeeId,
+          accepted: false,
         },
-        { accepted: true },
         { new: true }
       );
-
+      await updatedFollow?.updateOne({ accepted: true }, { new: true });
       return this.errorHandler.handleNull(
         updatedFollow,
         FollowDaoErrors.NO_FOLLOW_FOUND

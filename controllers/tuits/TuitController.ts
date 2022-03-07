@@ -1,9 +1,9 @@
 import ITuitController from './ITuitController';
 import ITuitDao from '../../daos/tuits/ITuitDao';
-import { Methods } from '../Methods';
-import HttpRequest from '../HttpRequest';
-import HttpResponse from '../HttpResponse';
-import IControllerRoute from '../IControllerRoute';
+import { Methods } from '../shared/Methods';
+import HttpRequest from '../shared/HttpRequest';
+import HttpResponse from '../shared/HttpResponse';
+import IControllerRoute from '../shared/IControllerRoute';
 
 /**
  * Handles CRUD requests and responses for the Tuit resource.  Implements {@link ITuitController}.
@@ -24,37 +24,31 @@ export default class TuitController implements ITuitController {
         path: '/tuits',
         method: Methods.GET,
         handler: this.findAll,
-        localMiddleware: [],
       },
       {
         path: '/tuits/:tuitId',
         method: Methods.GET,
         handler: this.findById,
-        localMiddleware: [],
       },
       {
         path: '/users/:userId/tuit',
         method: Methods.GET,
         handler: this.findByUser,
-        localMiddleware: [],
       },
       {
         path: '/users/:userId/tuits',
         method: Methods.POST,
         handler: this.create,
-        localMiddleware: [],
       },
       {
         path: '/tuits/:tuitId',
         method: Methods.PUT,
         handler: this.update,
-        localMiddleware: [],
       },
       {
         path: '/tuits/:tuitId',
         method: Methods.DELETE,
         handler: this.delete,
-        localMiddleware: [],
       },
     ];
     Object.freeze(this); // Make this object immutable.
@@ -71,10 +65,9 @@ export default class TuitController implements ITuitController {
 
   /**
    * Calls the dao to find all tuits and returns them in the response. Passes errors to the next middleware.
-   * @param {HttpRequest} req the request data containing client data
    * @returns {HttpResponse} the response data to be sent to the client
    */
-  findAll = async (req: HttpRequest): Promise<HttpResponse> => {
+  findAll = async (): Promise<HttpResponse> => {
     return { body: await this.tuitDao.findAll() };
   };
 
@@ -84,7 +77,7 @@ export default class TuitController implements ITuitController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   findById = async (req: HttpRequest): Promise<HttpResponse> => {
-    return { body: this.tuitDao.findById(req.params.tuitId) };
+    return { body: await this.tuitDao.findById(req.params.tuitId) };
   };
 
   /**

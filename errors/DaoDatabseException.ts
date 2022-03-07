@@ -1,12 +1,12 @@
-import { HttpStatusCode } from '../controllers/HttpStatusCode';
+import { HttpStatusCode } from '../controllers/shared/HttpStatusCode';
 import BaseError from './BaseError';
 
 export default class DaoDatabaseException extends BaseError {
-  public status: HttpStatusCode;
+  public code: HttpStatusCode;
 
-  constructor(message: string, error: unknown) {
+  constructor(message: string, error?: unknown) {
     super(message, error);
-    this.status = HttpStatusCode.internalError;
+    this.code = HttpStatusCode.internalError;
     Object.freeze(this);
   }
 }

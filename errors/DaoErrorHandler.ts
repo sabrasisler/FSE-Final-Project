@@ -1,4 +1,4 @@
-import { HttpStatusCode } from '../controllers/HttpStatusCode';
+import { HttpStatusCode } from '../controllers/shared/HttpStatusCode';
 import BaseError from './BaseError';
 import DaoDatabaseException from './DaoDatabseException';
 import DaoNullException from './DaoNullException';

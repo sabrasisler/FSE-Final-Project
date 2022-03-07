@@ -1,4 +1,4 @@
-import { HttpStatusCode } from '../controllers/HttpStatusCode';
+import { HttpStatusCode } from '../controllers/shared/HttpStatusCode';
 import { Request, Response, NextFunction } from 'express';
 import BaseError from './BaseError';
 import { exit } from 'process';
@@ -15,9 +15,9 @@ export const handleCentralError = (
     error: 'Sorry, something went wrong!',
     path: req.path,
   };
-  if (err instanceof BaseError && err.status === HttpStatusCode.notFound) {
+  if (err instanceof BaseError && err.code === HttpStatusCode.notFound) {
     clientResponse.error = 'Sorry, resource not found!';
-    clientResponse.status = err.status;
+    clientResponse.status = err.code;
   }
   res.status(HttpStatusCode.internalError).json(clientResponse);
   if (!(err instanceof BaseError && err.isOperational)) {

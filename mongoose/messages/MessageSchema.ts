@@ -1,6 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import IMessage from '../../models/messages/IMessage';
 import UserSchema from '../users/UserSchema';
+import { formatJSON } from '../util/formatJSON';
 
 /**
  * A Mongoose message schema that takes an {@link IMessage}. A message contains information about who the sender is, the message, and who has removed/deleted the conversation. When a user deletes a message, it is only removed for that user and not any other participants unless they also choose to remove it.
@@ -38,5 +39,5 @@ const MessageSchema = new mongoose.Schema<IMessage>(
 //   },
 //   { unique: true }
 // );
-
+formatJSON(MessageSchema);
 export default MessageSchema;

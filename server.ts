@@ -1,4 +1,4 @@
-import express, { RequestHandler } from 'express';
+import express, { RequestHandler, Router } from 'express';
 import Server from './config/Server';
 import DaoErrorHandler from './errors/DaoErrorHandler';
 import mongoose from 'mongoose';
@@ -20,10 +20,14 @@ import BookMarkController from './controllers/bookmarks/BookmarkController';
 import BookmarkDao from './daos/bookmarks/BookmarkDao';
 import BookmarkModel from './mongoose/bookmarks/BookmarkModel';
 import ExpressAdapter from './config/ExpressAdapter';
-import IBaseController from './controllers/IBaseController';
+import IBaseController from './controllers/shared/IBaseController';
 import FollowController from './controllers/follows/FollowController';
 import FollowDao from './daos/follows/FollowDao';
 import FollowModel from './mongoose/follows/FollowModel';
+import IValidator from './controllers/shared/IValidator';
+import ExpressValidatorIUser from './controllers/shared/ExpressValidatorIUser';
+import IUser from './models/users/IUser';
+import { configUserRoutes } from './routes/users/userRoutes';
 
 const app = express();
 
@@ -35,7 +39,7 @@ const daoErrorHandler: IErrorHandler = new DaoErrorHandler();
 
 const allControllers: IBaseController[] = [
   new UserController(new UserDao(UserModel, daoErrorHandler)),
-  new TuitController(new TuitDao(TuitModel, daoErrorHandler)),
+  new TuitController(new TuitDao(TuitModel, UserModel, daoErrorHandler)),
   new MessageController(
     new MessageDao(MessageModel, ConversationModel, daoErrorHandler)
   ),

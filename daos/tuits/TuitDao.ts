@@ -3,12 +3,16 @@ import { Model } from 'mongoose';
 import ITuit from '../../models/tuits/ITuit';
 import IErrorHandler from '../../errors/IErrorHandler';
 import { TuitDaoErrors } from './TuitDaoErrors';
+import IUser from '../../models/users/IUser';
+import Tuit from '../../models/tuits/Tuit';
+import DaoNullException from '../../errors/DaoNullException';
 
 /**
  * DAO database CRUD operations for the tuit resource. Takes the injected dependencies of a {@link Model<ITuit>} ORM model and an {@link IErrorHandler} error handler.
  */
 export default class TuitDao implements ITuitDao {
-  private readonly model: Model<ITuit>;
+  private readonly tuitModel: Model<ITuit>;
+  private readonly userModel: Model<IUser>;
   private readonly errorHandler: IErrorHandler;
 
   /**
@@ -16,8 +20,13 @@ export default class TuitDao implements ITuitDao {
    * @param {TuitModel} TuitModel the Mongoose tuit model
    * @param {IErrorHandler} errorHandler the error handler to deal with all errors that might occur
    */
-  public constructor(tuitModel: Model<ITuit>, errorHandler: IErrorHandler) {
-    this.model = tuitModel;
+  public constructor(
+    tuitModel: Model<ITuit>,
+    userModel: Model<IUser>,
+    errorHandler: IErrorHandler
+  ) {
+    this.tuitModel = tuitModel;
+    this.userModel = userModel;
     this.errorHandler = errorHandler;
     Object.freeze(this); // Make this object immutable.
   }
@@ -29,7 +38,7 @@ export default class TuitDao implements ITuitDao {
    */
   findByUser = async (userId: string): Promise<ITuit> => {
     try {
-      const tuit = await this.model
+      const tuit = await this.tuitModel
         .findOne({ author: userId })
         .populate('author');
       return this.errorHandler.handleNull(tuit, TuitDaoErrors.TUIT_NOT_FOUND);
@@ -47,7 +56,7 @@ export default class TuitDao implements ITuitDao {
    */
   findAll = async (): Promise<ITuit[]> => {
     try {
-      return await this.model.find().populate('author');
+      return await this.tuitModel.find().populate('author');
     } catch (err) {
       throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_FINDING_TUITS,
@@ -63,7 +72,7 @@ export default class TuitDao implements ITuitDao {
    */
   findById = async (tuitId: string): Promise<ITuit> => {
     try {
-      const tuit = await this.model.findById(tuitId);
+      const tuit = await this.tuitModel.findById(tuitId);
       return this.errorHandler.handleNull(tuit, TuitDaoErrors.TUIT_NOT_FOUND);
     } catch (err) {
       throw this.errorHandler.handleError(
@@ -75,16 +84,23 @@ export default class TuitDao implements ITuitDao {
 
   /**
    * Create a new tuit document with all its data by calling the Mongoose TuitModel.
-   * @param {ITuit} tuit the new tuit
+   * @param {ITuit} tuitData the new tuit
    * @returns the newly created tuit
    */
-  create = async (tuit: ITuit): Promise<ITuit> => {
-    console.log(tuit);
+  create = async (tuitData: ITuit): Promise<ITuit> => {
     try {
-      const newTuit = await this.model.create({
-        ...tuit,
-      });
-      return newTuit;
+      // Check if user exists first.
+      const existingUser: IUser | null = await this.userModel.findById(
+        tuitData.author
+      );
+      if (existingUser === null) {
+        throw new DaoNullException(TuitDaoErrors.NO_USER_FOUND);
+      } else {
+        // Validate tuit and create.
+        const validatedTuit: ITuit = new Tuit(tuitData.tuit, existingUser);
+        const newTuit = await this.tuitModel.create(validatedTuit);
+        return newTuit;
+      }
     } catch (err) {
       throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_CREATING_TUIT,
@@ -101,9 +117,9 @@ export default class TuitDao implements ITuitDao {
    */
   update = async (tuitId: string, tuit: any): Promise<ITuit> => {
     try {
-      const updatedTuit = await this.model.findOneAndUpdate(
+      const updatedTuit = await this.tuitModel.findOneAndUpdate(
         { _id: tuitId },
-        tuit,
+        tuit.tuit,
         {
           new: true,
         }
@@ -127,9 +143,10 @@ export default class TuitDao implements ITuitDao {
    */
   delete = async (tuitId: string): Promise<ITuit> => {
     try {
-      const deletedTuit = await this.model.findByIdAndDelete(tuitId);
+      const tuitToDelete = await this.tuitModel.findById(tuitId);
+      tuitToDelete?.remove();
       return this.errorHandler.handleNull(
-        deletedTuit,
+        tuitToDelete,
         TuitDaoErrors.TUIT_NOT_FOUND
       );
     } catch (err) {

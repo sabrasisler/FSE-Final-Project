@@ -1,6 +1,5 @@
 import { AccountStatus } from './AccountStatus';
 import { AccountType } from './AccoutType';
-import { ILocation } from './ILocation';
 
 /**
  * User entity interface
@@ -11,15 +10,14 @@ export default interface IUser {
   firstName: string;
   lastName: string;
   email: string;
-  profilePhoto: string;
-  headerImage: string;
-  accountType: AccountType;
-  accountStatus: AccountStatus;
   bio: string;
   dateOfBirth: Date;
-  location: ILocation;
+  headerImage: string;
+  profilePhoto: string;
+  accountType?: AccountType;
+  accountStatus?: AccountStatus;
   followerCount: number;
   followeeCount: number;
 
-  passwordEquals(password: string): boolean;
+  // passwordEquals(password: string): boolean;
 }

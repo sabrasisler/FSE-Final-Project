@@ -1,8 +1,8 @@
 import ILikeDao from '../../daos/likes/ILikeDao';
-import HttpRequest from '../HttpRequest';
-import HttpResponse from '../HttpResponse';
-import IControllerRoute from '../IControllerRoute';
-import { Methods } from '../Methods';
+import HttpRequest from '../shared/HttpRequest';
+import HttpResponse from '../shared/HttpResponse';
+import IControllerRoute from '../shared/IControllerRoute';
+import { Methods } from '../shared/Methods';
 import ILikeController from './ILikeController';
 
 /**
@@ -26,25 +26,21 @@ export default class LikeController implements ILikeController {
         path: '/users/:userId/tuits/:tuitId/likes',
         method: Methods.POST,
         handler: this.userLikesTuit,
-        localMiddleware: [],
       },
       {
         path: '/users/userId:/tuits/:tuitId/likes',
         method: Methods.DELETE,
         handler: this.userUnlikesTuit,
-        localMiddleware: [],
       },
       {
         path: '/tuits/:tuitId/likes',
         method: Methods.GET,
         handler: this.findAllUsersByTuitLike,
-        localMiddleware: [],
       },
       {
         path: '/users/:userId/likes',
         method: Methods.GET,
         handler: this.findAllTuitsLikedByUser,
-        localMiddleware: [],
       },
     ];
     Object.freeze(this); // Make this object immutable.

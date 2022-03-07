@@ -1,9 +1,8 @@
-import { HttpStatusCode } from '../controllers/HttpStatusCode';
-import IError from './IError';
+import { HttpStatusCode } from '../controllers/shared/HttpStatusCode';
 
 export default abstract class BaseError extends Error {
   public readonly isOperational: boolean = true;
-  public abstract readonly status: HttpStatusCode;
+  public abstract readonly code: HttpStatusCode;
   constructor(message: string, err?: unknown) {
     super(message);
     Object.setPrototypeOf(this, new.target.prototype); // restore chain

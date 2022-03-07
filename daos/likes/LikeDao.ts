@@ -54,14 +54,15 @@ export class LikeDao implements ILikeDao {
    */
   userUnlikesTuit = async (userId: string, tuitId: string): Promise<ILike> => {
     try {
-      const deletedLike = await this.likeModel
-        .remove({
+      const likeToDelete = await this.likeModel
+        .findOne({
           user: userId,
           tuit: tuitId,
         })
         .populate('tuit');
+      likeToDelete?.remove();
       return this.errorHandler.handleNull(
-        deletedLike,
+        likeToDelete,
         LikeDaoErrors.DELETED_LIKE_NOT_FOUND
       );
     } catch (err) {

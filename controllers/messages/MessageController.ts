@@ -2,10 +2,10 @@ import IMessageController from './IMessageController';
 import IMessageDao from '../../daos/messages/IMessageDao';
 import IMessage from '../../models/messages/IMessage';
 import IConversation from '../../models/messages/IConversation';
-import { Methods } from '../Methods';
-import IControllerRoute from '../IControllerRoute';
-import HttpRequest from '../HttpRequest';
-import HttpResponse from '../HttpResponse';
+import { Methods } from '../shared/Methods';
+import IControllerRoute from '../shared/IControllerRoute';
+import HttpRequest from '../shared/HttpRequest';
+import HttpResponse from '../shared/HttpResponse';
 
 /**
  * Represents an implementation of an {@link IMessageController}
@@ -27,43 +27,36 @@ export default class MessageController implements IMessageController {
         path: '/:userId/messages',
         method: Methods.GET,
         handler: this.findLatestMessagesByUser,
-        localMiddleware: [],
       },
       {
         path: '/:userId/messages/sent',
         method: Methods.GET,
         handler: this.findAllMessagesSentByUser,
-        localMiddleware: [],
       },
       {
         path: '/:userId/conversations/:conversationId/messages',
         method: Methods.GET,
         handler: this.findAllMessagesByConversation,
-        localMiddleware: [],
       },
       {
         path: '/:userId/conversations/',
         method: Methods.POST,
         handler: this.createConversation,
-        localMiddleware: [],
       },
       {
         path: '/:userId/messages/',
         method: Methods.POST,
         handler: this.createMessage,
-        localMiddleware: [],
       },
       {
         path: '/:userId/messages/:messageId',
         method: Methods.DELETE,
         handler: this.deleteMessage,
-        localMiddleware: [],
       },
       {
         path: '/:userId/conversations/:conversationId',
         method: Methods.DELETE,
         handler: this.deleteConversation,
-        localMiddleware: [],
       },
     ];
     Object.freeze(this); // Make this object immutable.

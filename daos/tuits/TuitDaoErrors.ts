@@ -4,6 +4,7 @@
  * Error messages for the tuit DAO used when throwing exceptions.
  */
 export enum TuitDaoErrors {
+  NO_USER_FOUND = 'Cannot create tuit: A user by this id was not found.',
   DB_ERROR_CREATING_TUIT = 'Database error creating tuit.',
   TUIT_NOT_FOUND = 'No matching tuit(s) found',
   DB_ERROR_FINDING_TUITS = 'DB error finding tuit(s)',

@@ -1,5 +1,6 @@
 export enum FollowDaoErrors {
   USER_OR_TUIT_NOT_FOUND = 'Follow DAO error: No user found',
+  NULL_FOLLOW_NEW = 'Database returned null for new follow.',
   NO_FOLLOW_FOUND_TO_DELETE = 'No Follow document found to delete.',
   DB_ERROR_USER_FOLLOWS_USER = 'Database error in creating follow for user follows user.',
   DB_ERROR_USER_UNFOLLOWS_USER = 'Database error in deleting follow.',

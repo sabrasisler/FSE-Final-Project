@@ -6,14 +6,15 @@ import {
   Express,
   RequestHandler,
 } from 'express';
-import { HttpStatusCode } from '../controllers/HttpStatusCode';
-import HttpRequest from '../controllers/HttpRequest';
+import { HttpStatusCode } from '../controllers/shared/HttpStatusCode';
+import HttpRequest from '../controllers/shared/HttpRequest';
 import BaseError from '../errors/BaseError';
 import { exit } from 'process';
-import IBaseController from '../controllers/IBaseController';
+import IBaseController from '../controllers/shared/IBaseController';
+import HttpResponse from '../controllers/shared/HttpResponse';
 
 /**
- * Adapter that decouples express from the all the controllers, making the controllers easier to test and express replaceable by another framework. Responsible for loading all global middleware, wiring all controllers to their respective request routes, sending requests to the client, and managing central errors.
+ * Adapter that encapsulates all express operations and decouples it from the all the controllers. Responsible for loading all global middleware, wiring all controllers to their respective request routes, sending requests to the client, and managing central errors.
  */
 export default class ExpressAdapter {
   private readonly globalMiddleware: Array<RequestHandler | any>;
@@ -51,7 +52,7 @@ export default class ExpressAdapter {
         body: req.body,
       };
       try {
-        const response = await controllerMethod(request);
+        const response: HttpResponse = await controllerMethod(request);
         res.status(HttpStatusCode.ok).json(response);
       } catch (err) {
         this.handleCentralError(err, req, res, next); // Send error to express central middleware
@@ -73,9 +74,6 @@ export default class ExpressAdapter {
     for (const controller of this.controllers) {
       const router = Router();
       for (const route of controller.routes) {
-        for (const localRouterMiddleware of route.localMiddleware) {
-          router.use(route.path, localRouterMiddleware);
-        }
         switch (route.method) {
           case 'GET':
             router.get(route.path, this.adaptRequest(route.handler));
@@ -110,15 +108,21 @@ export default class ExpressAdapter {
     next: NextFunction
   ): void => {
     console.log(err); // TODO: Add logger here.
-    const clientResponse = {
-      timestamp: Date.now,
-      status: HttpStatusCode.internalError,
-      error: 'Sorry, something went wrong!',
+    const clientResponse: HttpResponse = {
+      code: HttpStatusCode.internalError,
+      body: {
+        error: 'Sorry, something went wrong!',
+        path: req.path,
+      },
+    };
+    const errorDetails = {
+      error: '',
       path: req.path,
     };
-    if (err instanceof BaseError && err.status === HttpStatusCode.notFound) {
-      clientResponse.error = 'Sorry, resource not found!';
-      clientResponse.status = err.status;
+    if (err instanceof BaseError && err.code !== HttpStatusCode.internalError) {
+      clientResponse.code = err.code;
+      errorDetails.error = err.message;
+      clientResponse.body = errorDetails;
     }
     res.status(HttpStatusCode.internalError).json(clientResponse);
     if (!(err instanceof BaseError && err.isOperational)) {

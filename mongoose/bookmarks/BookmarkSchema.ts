@@ -1,5 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
+import MongooseException from '../../errors/MongooseException';
 import IBookmark from '../../models/bookmarks/IBookmark';
+import IUser from '../../models/users/IUser';
+import UserModel from '../users/UserModel';
+import { formatJSON } from '../util/formatJSON';
 
 /**
  * Mongoose schema for the bookmarks resource that takes an {@link IBookmark} interface. The schema contains a user and tuit foreign key references. All fields are required, and created/updated time stamps are added.
@@ -33,4 +37,12 @@ BookmarkSchema.index(
   }
 );
 
+BookmarkSchema.pre('save', async function (next): Promise<void> {
+  const existingUser: IUser | null = await UserModel.findById(this.user);
+  if (existingUser === null) {
+    throw new MongooseException('User not found.');
+  }
+});
+
+formatJSON(BookmarkSchema);
 export default BookmarkSchema;
