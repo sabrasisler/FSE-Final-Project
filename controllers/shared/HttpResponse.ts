@@ -1,8 +1,8 @@
 import { Http2ServerResponse } from 'http2';
-import { HttpStatusCode } from './HttpStatusCode';
+import { StatusCode } from './HttpStatusCode';
 
 interface HttpResponse {
-  code?: HttpStatusCode;
+  code?: StatusCode;
   body: any;
 }
 

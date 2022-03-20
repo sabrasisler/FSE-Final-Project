@@ -61,12 +61,12 @@ export default class FollowDao implements IFollowDao {
         follower: follower,
         followee: followee,
       });
-      this.errorHandler.handleNull(
+      this.errorHandler.objectOrNullException(
         deletedFollow,
         FollowDaoErrors.NO_FOLLOW_FOUND
       );
       await deletedFollow?.remove(); // trigger pre remove hook in schema
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         deletedFollow,
         FollowDaoErrors.NO_FOLLOW_FOUND_TO_DELETE
       );
@@ -83,9 +83,7 @@ export default class FollowDao implements IFollowDao {
    * @param {string} userId the id of the user who is following all the users to be  returned
    * @returns {Promise<IUser[]>} a promise with all users the specified user is following
    */
-  findAllUsersThatUserIsFollowing = async (
-    userId: string
-  ): Promise<IUser[]> => {
+  findAllFollowees = async (userId: string): Promise<IUser[]> => {
     try {
       const follows: IFollow[] = await this.followModel
         .find({ follower: userId })
@@ -105,7 +103,7 @@ export default class FollowDao implements IFollowDao {
    * @param {string} userId the id of the user
    * @returns {Promise<IUser[]>} a promise with all users following the specified user
    */
-  findAllUsersFollowingUser = async (userId: string): Promise<IUser[]> => {
+  findAllFollowers = async (userId: string): Promise<IUser[]> => {
     try {
       const follows: IFollow[] = await this.followModel
         .find({ followee: userId })
@@ -140,7 +138,7 @@ export default class FollowDao implements IFollowDao {
         { new: true }
       );
       await updatedFollow?.updateOne({ accepted: true }, { new: true });
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         updatedFollow,
         FollowDaoErrors.NO_FOLLOW_FOUND
       );
@@ -162,7 +160,7 @@ export default class FollowDao implements IFollowDao {
       const pendingFollows = await this.followModel.find({
         followee: userId,
       });
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         pendingFollows,
         FollowDaoErrors.NO_FOLLOW_FOUND
       );

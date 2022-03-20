@@ -1,8 +1,9 @@
 import IUser from './IUser';
 import InvalidEntityException from '../../errors/InvalidEntityException';
 import { UserErrorMessages } from './UserErrorMessages';
-import { isValidRegex } from '../shared/validateWithRegex';
+import { isValidRegex } from '../../shared/validateWithRegex';
 import { AccountStatus } from './AccountStatus';
+import { AccountType } from './AccoutType';
 
 /**
  * Represents a user model entity containing all basic information related to to a user.
@@ -12,15 +13,15 @@ import { AccountStatus } from './AccountStatus';
 export default class User implements IUser {
   public readonly username: string;
   public readonly password: string;
-  public readonly firstName: string;
-  public readonly lastName: string;
+  public readonly name: string;
   public readonly email: string;
   public readonly profilePhoto: string;
   public readonly headerImage: string;
   public readonly bio: string;
-  public readonly dateOfBirth: Date;
-  public readonly followerCount: number;
-  public readonly followeeCount: number;
+  public readonly birthday: Date;
+  public readonly followerCount?: number;
+  public readonly followeeCount?: number;
+  public readonly accountType: AccountType;
 
   /**
    * Constructs the user object all information related to the user.
@@ -33,45 +34,53 @@ export default class User implements IUser {
    * @param {string} headerImage header image URL string
    * @param {string} accountType account type
    * @param {string} bio biography
-   * @param {string} dateOfBirth date of birth
+   * @param {string} birthday date of birth
 
    */
   public constructor(data: {
-    firstName: string;
-    lastName: string;
+    name: string;
     password: string;
-    dateOfBirth: string;
+    birthday: string;
     bio: string;
     username: string;
     email: string;
-    accountType?: string;
+    accountType: string;
     headerImage: string;
     profilePhoto: string;
-    accountStatus: AccountStatus.Active;
-    followerCount: 0;
-    followeeCount: 0;
+    accountStatus?: AccountStatus.Active;
   }) {
+    console.log('USER', data);
     this.validateUsername(data.username);
-    this.validateName(data.firstName, data.lastName);
+    this.validateName(data.name);
     this.validateEmail(data.email);
     this.validatePassword(data.password);
-    this.validateDOB(data.dateOfBirth);
+    this.validateDOB(data.birthday);
     this.validateBio(data.bio);
+    this.validateAccountType(data.accountType);
 
     this.username = data.username.trim();
-    this.firstName = data.firstName.trim();
-    this.lastName = data.lastName.trim();
+    this.name = data.name.trim();
     this.password = data.password.trim();
     this.email = data.email.toLowerCase().trim();
     this.profilePhoto = data.profilePhoto.trim();
     this.headerImage = data.headerImage.trim();
     this.bio = data.bio.trim();
-    this.dateOfBirth = new Date(`<${data.dateOfBirth}>`);
-    this.followerCount = 0;
-    this.followeeCount = 0;
+    this.birthday = new Date(`<${data.birthday}>`);
+    this.accountType = data.accountType.trim().toUpperCase() as AccountType;
+
     Object.freeze(this);
   }
 
+  private validateAccountType(type: string | undefined) {
+    if (
+      !type ||
+      !Object.values(AccountType).includes(
+        type.trim().toUpperCase() as AccountType
+      )
+    ) {
+      throw new InvalidEntityException(UserErrorMessages.INVALID_ACCOUNT_TYPE);
+    }
+  }
   private validateUsername = (username: string): void => {
     if (
       !isValidRegex(
@@ -83,21 +92,14 @@ export default class User implements IUser {
     }
   };
 
-  private validateName = (firstName: string, lastName: string): void => {
-    if (
-      !firstName ||
-      !lastName ||
-      firstName.length < 2 ||
-      lastName.length < 2 ||
-      firstName.length > 50 ||
-      lastName.length > 50
-    ) {
+  private validateName = (name: string): void => {
+    if (!name || name.length < 2 || name.length > 50) {
       throw new InvalidEntityException(UserErrorMessages.INVALID_NAME);
     }
   };
 
   private validateBio = (bio: string): void => {
-    if (!bio || bio.length > 160) {
+    if (bio && bio.length > 160) {
       throw new InvalidEntityException(UserErrorMessages.INVALID_BIO);
     }
   };

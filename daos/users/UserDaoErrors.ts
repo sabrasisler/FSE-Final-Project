@@ -9,6 +9,7 @@ export enum UserDaoErrors {
   CANNOT_DISCONNECT_DB = 'Error diconnecting from database',
   DB_ERROR_CREATING_USER = 'Unable to save to database.',
   DB_ERROR_FINDING_USER = 'Database error finding user.',
+  DB_ERROR_EXISTS = 'Database error checking if user exists.',
   DB_ERROR_FINDING_ALL_USERS = 'Database error in retrieving all users.',
   USER_NOT_FOUND = 'No users found in the database.',
   USER_ALREADY_EXISTS = 'Cannot create: A user by this email already exists in the database.',

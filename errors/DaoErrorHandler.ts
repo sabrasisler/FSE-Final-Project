@@ -1,4 +1,4 @@
-import { HttpStatusCode } from '../controllers/shared/HttpStatusCode';
+import { StatusCode } from '../controllers/shared/HttpStatusCode';
 import BaseError from './BaseError';
 import DaoDatabaseException from './DaoDatabseException';
 import DaoNullException from './DaoNullException';
@@ -16,13 +16,13 @@ export default class DaoErrorHandler implements IErrorHandler {
    * Takes any error caught by the dao caller, and either returns a {@link DaoDatabaseException} or returns the argument error. If the argument is an instance of the abstract error class {@link BaseError}, then it is a local application error, so just return the error. If not, then it is likely an error from the database, and so this methods wraps it in a more meaningful context with a DaoDatabaseException.
    * @param {string} message the custom message for the error to be created
    * @param {unknown} err the error sent by the caller: This is typically called by class that has caught an error or needs to deal with a known or unknown exception.
-   * @param {HttpStatusCode} statusCode status code of the error
+   * @param {StatusCode} statusCode status code of the error
    * @return {IError} implementation
    */
   public handleError = (
     message: string,
     err: any,
-    statusCode?: HttpStatusCode
+    statusCode?: StatusCode
   ): IError => {
     if (err instanceof BaseError) {
       return err;
@@ -37,7 +37,7 @@ export default class DaoErrorHandler implements IErrorHandler {
    * @param {string} message the potential error message for the null exception should the object be null
    * @returns param object if not null
    */
-  public handleNull = <T>(object: T | null, message: string): T => {
+  public objectOrNullException = <T>(object: T | null, message: string): T => {
     if (object === null) {
       throw new DaoNullException(message);
     }

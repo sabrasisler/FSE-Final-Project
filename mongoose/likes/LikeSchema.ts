@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { HttpStatusCode } from '../../controllers/shared/HttpStatusCode';
+import { StatusCode } from '../../controllers/shared/HttpStatusCode';
 import MongooseException from '../../errors/MongooseException';
 import ILike from '../../models/likes/ILike';
 import ITuit from '../../models/tuits/ITuit';

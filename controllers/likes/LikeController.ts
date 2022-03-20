@@ -1,48 +1,41 @@
 import ILikeDao from '../../daos/likes/ILikeDao';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
-import IControllerRoute from '../shared/IControllerRoute';
-import { Methods } from '../shared/Methods';
 import ILikeController from './ILikeController';
+import { Express, Router } from 'express';
+import { adaptRequest } from '../shared/adaptRequest';
 
 /**
  * Represents the implementation of an ILikeController interface for handling the likes resource api.
  */
 
 export default class LikeController implements ILikeController {
-  public readonly path: string;
   private readonly dao: ILikeDao;
-  public readonly routes: IControllerRoute[];
 
   /** Constructs the like controller with an injected ILikeDao interface implementation. Defines the endpoint paths, middleware, method types, and handler methods associated with each endpoint.
    *
    * @param {ILikeDao} likeDao a like dao implementing the ILikeDao interface used to find resources in the database.
    */
-  constructor(likeDao: ILikeDao) {
-    this.path = '/api/v1';
+  constructor(path: string, app: Express, likeDao: ILikeDao) {
     this.dao = likeDao;
-    this.routes = [
-      {
-        path: '/users/:userId/tuits/:tuitId/likes',
-        method: Methods.POST,
-        handler: this.userLikesTuit,
-      },
-      {
-        path: '/users/userId:/tuits/:tuitId/likes',
-        method: Methods.DELETE,
-        handler: this.userUnlikesTuit,
-      },
-      {
-        path: '/tuits/:tuitId/likes',
-        method: Methods.GET,
-        handler: this.findAllUsersByTuitLike,
-      },
-      {
-        path: '/users/:userId/likes',
-        method: Methods.GET,
-        handler: this.findAllTuitsLikedByUser,
-      },
-    ];
+    const router = Router();
+    router.get(
+      '/users/:userId/likes',
+      adaptRequest(this.findAllTuitsLikedByUser)
+    );
+    router.get(
+      '/tuits/:tuitId/likes',
+      adaptRequest(this.findAllUsersByTuitLike)
+    );
+    router.post(
+      '/users/:userId/tuits/:tuitId/likes',
+      adaptRequest(this.userLikesTuit)
+    );
+    router.delete(
+      '/users/userId:/tuits/:tuitId/likes',
+      adaptRequest(this.userUnlikesTuit)
+    );
+    router.use(path, router);
     Object.freeze(this); // Make this object immutable.
   }
   /**

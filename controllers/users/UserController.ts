@@ -1,19 +1,24 @@
 import IGenericController from '../shared/IGenericController';
-import IDao from '../../daos/IDao';
+import IDao from '../../daos/shared/IDao';
 import IUser from '../../models/users/IUser';
-import { Methods } from '../shared/Methods';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
-import IControllerRoute from '../shared/IControllerRoute';
 import User from '../../models/users/User';
-import { createOkResponse } from '../shared/createHttpResponse';
+import { createOkResponse } from '../shared/createResponse';
+import { Express, Router } from 'express';
+import { adaptRequest } from '../shared/adaptRequest';
+import { isAuthenticated } from '../auth/isAuthenticated';
+import {
+  validatePassword,
+  validateProfile,
+  validationResults,
+} from '../middleware/validateProfile';
+import { body, validationResult } from 'express-validator';
 
 /**
  * Processes the requests and responses dealing with the user resource. Implements {@link IController}.
  */
-export class UserController implements IGenericController {
-  public readonly path: string;
-  public readonly routes: IControllerRoute[];
+export class UserController {
   private readonly dao: IDao<IUser>;
 
   /**
@@ -21,37 +26,21 @@ export class UserController implements IGenericController {
    * @param dao a user dao that implements {@link IDao}
    */
 
-  public constructor(dao: IDao<IUser>) {
-    this.path = '/api/v1';
+  public constructor(path: string, app: Express, dao: IDao<IUser>) {
     this.dao = dao;
-    this.routes = [
-      {
-        path: '/users',
-        method: Methods.GET,
-        handler: this.findAll,
-      },
-      {
-        path: '/users',
-        method: Methods.POST,
-        handler: this.create,
-      },
-      {
-        path: '/users/:userId',
-        method: Methods.GET,
-        handler: this.findById,
-      },
-
-      {
-        path: '/users/:userId',
-        method: Methods.PUT,
-        handler: this.update,
-      },
-      {
-        path: '/users/:userId',
-        method: Methods.DELETE,
-        handler: this.delete,
-      },
-    ];
+    const router = Router();
+    router.get('/', adaptRequest(this.findAll));
+    router.post('/', adaptRequest(this.create));
+    router.get('/:userId', adaptRequest(this.findById));
+    router.put(
+      '/:userId',
+      isAuthenticated,
+      validateProfile,
+      validationResults,
+      adaptRequest(this.update)
+    );
+    router.delete('/:userId', adaptRequest(this.delete));
+    app.use(path, router);
     Object.freeze(this); // Make this object immutable.
   }
 
@@ -92,8 +81,7 @@ export class UserController implements IGenericController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   update = async (req: HttpRequest): Promise<HttpResponse> => {
-    const validatedUser: IUser = new User({ ...req.body });
-    const updatedUser = await this.dao.update(req.params.userId, validatedUser);
+    const updatedUser = await this.dao.update(req.params.userId, req.body);
     return createOkResponse(updatedUser);
   };
 

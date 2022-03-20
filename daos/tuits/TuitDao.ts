@@ -36,12 +36,15 @@ export default class TuitDao implements ITuitDao {
    * @param {string} userId the id of the user.
    * @returns an array of all tuits by the user id, with author user populated
    */
-  findByUser = async (userId: string): Promise<ITuit> => {
+  findByUser = async (userId: string): Promise<ITuit[]> => {
     try {
-      const tuit = await this.tuitModel
-        .findOne({ author: userId })
+      const tuits = await this.tuitModel
+        .find({ author: userId })
         .populate('author');
-      return this.errorHandler.handleNull(tuit, TuitDaoErrors.TUIT_NOT_FOUND);
+      return this.errorHandler.objectOrNullException(
+        tuits,
+        TuitDaoErrors.TUIT_NOT_FOUND
+      );
     } catch (err) {
       throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_FINDING_TUITS,
@@ -56,7 +59,10 @@ export default class TuitDao implements ITuitDao {
    */
   findAll = async (): Promise<ITuit[]> => {
     try {
-      return await this.tuitModel.find().populate('author');
+      return await this.tuitModel
+        .find()
+        .sort({ createdAt: 'descending' })
+        .populate('author');
     } catch (err) {
       throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_FINDING_TUITS,
@@ -72,13 +78,29 @@ export default class TuitDao implements ITuitDao {
    */
   findById = async (tuitId: string): Promise<ITuit> => {
     try {
-      const tuit = await this.tuitModel.findById(tuitId);
-      return this.errorHandler.handleNull(tuit, TuitDaoErrors.TUIT_NOT_FOUND);
+      const tuit = await this.tuitModel.findById(tuitId).populate('author');
+      return this.errorHandler.objectOrNullException(
+        tuit,
+        TuitDaoErrors.TUIT_NOT_FOUND
+      );
     } catch (err) {
       throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_FINDING_TUITS,
         err
       );
+    }
+  };
+
+  exists = async (tuit: ITuit): Promise<boolean> => {
+    try {
+      const dbTuit: IUser | null = await this.tuitModel.findOne({
+        tuit: tuit.tuit,
+        author: tuit.author,
+      });
+      if (dbTuit === null) return false;
+      else return true;
+    } catch (err) {
+      throw this.errorHandler.handleError(TuitDaoErrors.DB_ERROR_EXISTS, err);
     }
   };
 
@@ -98,7 +120,10 @@ export default class TuitDao implements ITuitDao {
       } else {
         // Validate tuit and create.
         const validatedTuit: ITuit = new Tuit(tuitData.tuit, existingUser);
-        const newTuit = await this.tuitModel.create(validatedTuit);
+        const newTuit = await (
+          await this.tuitModel.create(validatedTuit)
+        ).populate('author');
+
         return newTuit;
       }
     } catch (err) {
@@ -115,16 +140,16 @@ export default class TuitDao implements ITuitDao {
    * @param {ITuit} tuit the tuit with the information used for the update.
    * @returns the updated tuit
    */
-  update = async (tuitId: string, tuit: any): Promise<ITuit> => {
+  update = async (tuitId: string, tuit: ITuit): Promise<ITuit> => {
     try {
-      const updatedTuit = await this.tuitModel.findOneAndUpdate(
+      const updatedTuit: ITuit | null = await this.tuitModel.findOneAndUpdate(
         { _id: tuitId },
-        tuit.tuit,
+        { tuit: tuit.tuit },
         {
           new: true,
         }
       );
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         updatedTuit,
         TuitDaoErrors.TUIT_NOT_FOUND
       );
@@ -144,8 +169,8 @@ export default class TuitDao implements ITuitDao {
   delete = async (tuitId: string): Promise<ITuit> => {
     try {
       const tuitToDelete = await this.tuitModel.findById(tuitId);
-      tuitToDelete?.remove();
-      return this.errorHandler.handleNull(
+      await tuitToDelete?.remove();
+      return this.errorHandler.objectOrNullException(
         tuitToDelete,
         TuitDaoErrors.TUIT_NOT_FOUND
       );

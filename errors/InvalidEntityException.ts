@@ -1,12 +1,12 @@
-import { HttpStatusCode } from '../controllers/shared/HttpStatusCode';
+import { StatusCode } from '../controllers/shared/HttpStatusCode';
 import BaseError from './BaseError';
 
 export default class InvalidEntityException extends BaseError {
-  public code: HttpStatusCode;
+  public code: StatusCode;
 
   constructor(message: string) {
     super(message);
-    this.code = HttpStatusCode.badRequest;
+    this.code = StatusCode.badRequest;
     Object.freeze(this);
   }
 }

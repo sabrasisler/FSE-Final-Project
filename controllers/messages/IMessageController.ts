@@ -1,11 +1,10 @@
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
-import IBaseController from '../shared/IBaseController';
 
 /**
  * Represents the interface of a message resource controller.
  */
-export default interface IMessageController extends IBaseController {
+export default interface IMessageController {
   findAllMessagesByConversation(req: HttpRequest): Promise<HttpResponse>;
   findLatestMessagesByUser(req: HttpRequest): Promise<HttpResponse>;
   findAllMessagesSentByUser(req: HttpRequest): Promise<HttpResponse>;

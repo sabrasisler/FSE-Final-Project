@@ -4,53 +4,28 @@ import { Methods } from '../shared/Methods';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
 import IControllerRoute from '../shared/IControllerRoute';
+import { Express, Router } from 'express';
+import { adaptRequest } from '../shared/adaptRequest';
 
 /**
  * Handles CRUD requests and responses for the Tuit resource.  Implements {@link ITuitController}.
  */
 export default class TuitController implements ITuitController {
-  public readonly path: string;
-  public readonly routes: IControllerRoute[];
   private readonly tuitDao: ITuitDao;
   /**
    * Constructs the controller by calling the super abstract, setting the dao, and configuring the endpoint paths.
    * @param tuitDao a tuit dao that implements {@link ITuitDao}
    */
-  public constructor(dao: ITuitDao) {
-    this.path = '/api/v1';
+  public constructor(path: string, app: Express, dao: ITuitDao) {
     this.tuitDao = dao;
-    this.routes = [
-      {
-        path: '/tuits',
-        method: Methods.GET,
-        handler: this.findAll,
-      },
-      {
-        path: '/tuits/:tuitId',
-        method: Methods.GET,
-        handler: this.findById,
-      },
-      {
-        path: '/users/:userId/tuit',
-        method: Methods.GET,
-        handler: this.findByUser,
-      },
-      {
-        path: '/users/:userId/tuits',
-        method: Methods.POST,
-        handler: this.create,
-      },
-      {
-        path: '/tuits/:tuitId',
-        method: Methods.PUT,
-        handler: this.update,
-      },
-      {
-        path: '/tuits/:tuitId',
-        method: Methods.DELETE,
-        handler: this.delete,
-      },
-    ];
+    const router: Router = Router();
+    router.get('/tuits', adaptRequest(this.findAll));
+    router.get('/tuits/:tuitId', adaptRequest(this.findById));
+    router.get('/users/:userId/tuit', adaptRequest(this.findByUser));
+    router.post('/users/:userId/tuits', adaptRequest(this.create));
+    router.put('/tuits/:tuitId', adaptRequest(this.update));
+    router.delete('/tuits/:tuitId', adaptRequest(this.delete));
+    app.use(path, router);
     Object.freeze(this); // Make this object immutable.
   }
 
@@ -86,6 +61,7 @@ export default class TuitController implements ITuitController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   create = async (req: HttpRequest): Promise<HttpResponse> => {
+    console.log('create tuit controller');
     return {
       body: await this.tuitDao.create({
         ...req.body,

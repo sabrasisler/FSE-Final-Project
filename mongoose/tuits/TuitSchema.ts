@@ -45,8 +45,8 @@ TuitSchema.index(
 /**
  * Check if user/author FK is valid before creating tuit.
  */
-TuitSchema.pre('save', function (next) {
-  const existingUser = UserModel.findById(this.author);
+TuitSchema.pre('save', async function (next) {
+  const existingUser = await UserModel.findById(this.author._id);
   if (existingUser === null) {
     throw new MongooseException('Author is not an existing user.');
   }
@@ -59,5 +59,5 @@ TuitSchema.post('remove', async function (next) {
   await BookmarkModel.deleteMany({ tuit: this._id });
 });
 
-formatJSON(UserSchema);
+formatJSON(TuitSchema);
 export default TuitSchema;

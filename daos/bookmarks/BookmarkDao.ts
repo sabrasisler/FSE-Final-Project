@@ -78,7 +78,7 @@ export default class BookmarkDao implements IBookMarkDao {
         await this.bookmarkModel.findOneAndDelete({
           _id: bookmarkId,
         });
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         deletedBookmark,
         BookmarkDaoErrors.NO_BOOK_MARK_FOUND
       );

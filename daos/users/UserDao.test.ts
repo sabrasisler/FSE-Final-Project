@@ -1,139 +1,65 @@
-import IDao from '../IDao';
-import { UserDaoErrors } from './UserDaoErrors';
-import { Model } from 'mongoose';
+import dotenv from 'dotenv';
+import DaoErrorHandler from '../../errors/DaoErrorHandler';
 import IUser from '../../models/users/IUser';
-import IErrorHandler from '../../errors/IErrorHandler';
-import User from '../../models/users/User';
+import UserModel from '../../mongoose/users/UserModel';
+import IDao from '../shared/IDao';
+import UserDao from './UserDao';
+import mongoose, { Mongoose } from 'mongoose';
+import { mockUsers } from '../../__mocks__/mockUsers';
+import configDatabase from '../../config/configDatabase';
+dotenv.config();
 
-/**
- * DAO database CRUD operations for the user resource. Takes the injected dependencies of a {@link Model<IUser>} ORM model and an {@link IErrorHandler} error handler.
- */
-export default class UserDao implements IDao<IUser> {
-  private readonly model: Model<IUser>;
-  private readonly errorHandler: IErrorHandler;
+beforeAll(async () => {
+  await configDatabase(process.env.MONGO_DEV!);
+});
 
-  /**
-   * Builds the DAO by setting model and error handler injected dependencies to state.
-   * @param {UserModel} UserModel the Mongoose user model
-   * @param {IErrorHandler} errorHandler the error handler to deal with all errors that might occur
-   */
-  constructor(model: Model<IUser>, errorHandler: IErrorHandler) {
-    this.model = model;
-    this.errorHandler = errorHandler;
-    Object.freeze(this);
+afterAll(async () => {
+  await mongoose.connection.dropCollection('users');
+});
+
+const stripPrivateFields = (users: any[]): any => {
+  let output: any[] = [];
+  for (const user of users) {
+    const dbUser: any = { ...user };
+    delete dbUser.password;
+    delete dbUser.dateOfBirth;
+    delete dbUser.email;
+    output.push(dbUser);
   }
+  return output;
+};
+const mockDatabaseUsers = stripPrivateFields(mockUsers);
 
-  /**
-   * Finds all users in the database.
-   * @returns an array of all users.
-   */
-  findAll = async (): Promise<IUser[]> => {
-    try {
-      const dbUsers = await this.model.find().exec();
-      return this.errorHandler.handleNull(
-        dbUsers,
-        UserDaoErrors.USER_NOT_FOUND
-      );
-    } catch (err) {
-      throw this.errorHandler.handleError(
-        UserDaoErrors.DB_ERROR_FINDING_ALL_USERS,
-        err
-      );
-    }
-  };
+const userDao: IDao<IUser> = new UserDao(UserModel, new DaoErrorHandler());
 
-  /**
-   * Finds a single user in the database by its specified id.
-   * @param {string} userId the id of the user
-   * @returns the user
-   */
-  findById = async (uid: string): Promise<IUser> => {
-    try {
-      const dbUser: IUser | null = await this.model.findById(uid);
-      return this.errorHandler.handleNull(
-        dbUser,
-        UserDaoErrors.USER_DOES_NOT_EXIST
-      );
-    } catch (err) {
-      throw this.errorHandler.handleError(
-        UserDaoErrors.DB_ERROR_FINDING_USER,
-        err
-      );
+describe.only('User Dao', () => {
+  test('create()', async () => {
+    for (let i = 0; i < mockUsers.length; i++) {
+      const dbUser: IUser = await userDao.create(mockUsers[i]);
+      expect(dbUser).toMatchObject(mockDatabaseUsers[i]);
     }
-  };
-
-  /**
-   * Create a new user document with all its data by calling the Mongoose UserModel.
-   * @param {string} user the new user
-   * @returns the newly created user
-   */
-  create = async (user: IUser): Promise<IUser> => {
-    try {
-      const newUser: IUser | null = await this.model.findOneAndUpdate(
-        { email: user.email },
-        { user },
-        {
-          upsert: true,
-          new: true,
-        }
-      );
-      return this.errorHandler.handleNull(
-        newUser,
-        UserDaoErrors.USER_NOT_FOUND
-      );
-    } catch (err) {
-      throw this.errorHandler.handleError(
-        UserDaoErrors.DB_ERROR_CREATING_USER,
-        err
-      );
+  });
+  test('findAll()', async () => {
+    const dbUsers: IUser[] = await userDao.findAll();
+    for (let i = 0; i < dbUsers.length; i++) {
+      expect(dbUsers[i]).toMatchObject(mockDatabaseUsers[i]);
     }
-  };
-
-  /**
-   * Updates a user in the database by its id.
-   * @param {string} userId the id of the user
-   * @param {IUser} user the user with the information used for the update.
-   * @returns the updated user
-   */
-  update = async (uid: string, user: any): Promise<IUser> => {
-    const validatedUser = new User(user);
-    try {
-      const updatedUser: IUser | null = await this.model.findOneAndUpdate(
-        { _id: uid },
-        user,
-        {
-          new: true,
-        }
-      );
-      return this.errorHandler.handleNull(
-        updatedUser,
-        UserDaoErrors.NO_USER_TO_UPDATE
-      );
-    } catch (err) {
-      throw this.errorHandler.handleError(
-        UserDaoErrors.DB_ERROR_CREATING_USER,
-        err
-      );
-    }
-  };
-
-  /**
-   * Deletes a particular user from the database.
-   * @param userId the id of the user.
-   * @returns the deleted user
-   */
-  delete = async (uid: string): Promise<IUser> => {
-    try {
-      const deletedUser: IUser | null = await this.model.findByIdAndDelete(uid);
-      return this.errorHandler.handleNull(
-        deletedUser,
-        UserDaoErrors.USER_DOES_NOT_EXIST
-      );
-    } catch (err) {
-      throw this.errorHandler.handleError(
-        UserDaoErrors.CANNOT_DELETE_USER,
-        err
-      );
-    }
-  };
-}
+  });
+  test('findById()', async () => {
+    const mockId: string = mockUsers[0]._id;
+    const dbUser: IUser = await userDao.findById(mockId);
+    expect(dbUser).toMatchObject(mockDatabaseUsers[0]);
+  });
+  test('update()', async () => {
+    const mockId: string = mockUsers[0]._id;
+    const update = { ...mockDatabaseUsers[0], bio: 'this is a bio update' };
+    const dbUser: IUser = await userDao.update(mockId, update);
+    expect(dbUser.bio).toBe(update.bio);
+    expect(dbUser).toMatchObject(update);
+  });
+  test('delete()', async () => {
+    const mockId: string = mockUsers[1]._id;
+    const deletedDbUser: IUser = await userDao.delete(mockId);
+    expect(deletedDbUser).toMatchObject(mockDatabaseUsers[1]);
+  });
+});

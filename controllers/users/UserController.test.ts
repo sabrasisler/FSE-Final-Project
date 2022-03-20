@@ -1,22 +1,20 @@
-import UserDaoMock from '../../mocks/UserDaoMock';
+import UserDaoMock from '../../__mocks__/UserDaoMock';
 import HttpRequest from '../shared/HttpRequest';
 import IGenericController from '../shared/IGenericController';
 import { UserController } from './UserController';
-import {
-  oneMockDbUser as mockDatabaseUser,
-  manyMockDbUsers,
-} from '../../mocks/mockUsers';
-import { HttpStatusCode } from '../shared/HttpStatusCode';
+import { mockUser, mockUsers } from '../../__mocks__/mockUsers';
+import { StatusCode } from '../shared/HttpStatusCode';
 import HttpResponse from '../shared/HttpResponse';
+import express, { Express } from 'express';
 
+const app: Express = express();
 let mockRequest: HttpRequest;
 let expectedResponse: HttpResponse;
 beforeEach(() => {
   mockRequest = {
     body: {
       username: 'neoIamTheOne',
-      firstName: 'Keanu',
-      lastName: 'Reeves',
+      name: 'Keanu',
       password: 'IAmTheOne123!',
       email: 'neo@matrix.com',
       bio: 'I am the one',
@@ -28,21 +26,23 @@ beforeEach(() => {
     params: { userId: 666 },
   };
   expectedResponse = {
-    code: HttpStatusCode.ok,
+    code: StatusCode.ok,
     body: {
-      ...mockDatabaseUser,
+      ...mockUser,
       id: mockRequest.params.userId,
     },
   };
 });
 const userController: IGenericController = new UserController(
+  'mock',
+  app,
   new UserDaoMock()
 );
 
 describe('User Controller create()', () => {
   test('create(): valid user', async () => {
     const response: HttpResponse = await userController.create(mockRequest);
-    expect(response.body).toBe(mockDatabaseUser);
+    expect(response.body).toBe(mockUser);
   });
 
   test('update()', async () => {
@@ -62,6 +62,6 @@ describe('User Controller create()', () => {
 
   test('findAll()', async () => {
     const response: HttpResponse = await userController.findAll();
-    expect(response.body).toBe(manyMockDbUsers);
+    expect(response.body).toBe(mockUsers);
   });
 });

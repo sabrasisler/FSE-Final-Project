@@ -69,7 +69,7 @@ export default class MessageDao implements IMessageDao {
         _id: message.conversation,
         participants: { $in: [sender] },
       });
-      this.errorHandler.handleNull(
+      this.errorHandler.objectOrNullException(
         existingConvo,
         MessageDaoErrors.INVALID_CONVERSATION
       );
@@ -104,7 +104,7 @@ export default class MessageDao implements IMessageDao {
         participants: { $in: [userId] },
       });
 
-      this.errorHandler.handleNull(
+      this.errorHandler.objectOrNullException(
         existingConvo,
         MessageDaoErrors.INVALID_CONVERSATION
       );
@@ -113,7 +113,7 @@ export default class MessageDao implements IMessageDao {
         conversation: conversationId,
         removeFor: { $nin: [userId] },
       });
-      this.errorHandler.handleNull(
+      this.errorHandler.objectOrNullException(
         allMessagesForConversation,
         MessageDaoErrors.NO_MATCHING_MESSAGES
       );
@@ -248,7 +248,7 @@ export default class MessageDao implements IMessageDao {
           $addToSet: { removeFor: userId }, // only unique entries in the array allowed
         }
       );
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         message,
         MessageDaoErrors.NO_MESSAGE_FOUND
       );
@@ -274,7 +274,7 @@ export default class MessageDao implements IMessageDao {
         },
         { new: true }
       );
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         conversation,
         MessageDaoErrors.NO_CONVERSATION_FOUND
       );

@@ -1,49 +1,28 @@
 import IBookmarkDao from '../../daos/bookmarks/IBookmarkDao';
-import IBookmark from '../../models/bookmarks/IBookmark';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
-import { HttpStatusCode } from '../shared/HttpStatusCode';
-import IControllerRoute from '../shared/IControllerRoute';
-import { Methods } from '../shared/Methods';
 import IBookMarkController from './IBookmarkController';
+import { Express, Router } from 'express';
+import { adaptRequest } from '../shared/adaptRequest';
 
 /**
  * Represents the implementation of an IBookmarkController interface for handling the bookmarks resource api.
  */
 export default class BookMarkController implements IBookMarkController {
-  public readonly path: string;
-  public readonly routes: IControllerRoute[];
   private bookmarkDao: IBookmarkDao;
 
   /** Constructs the bookmark controller with an injected IBookmarkDao interface implementation. Defines the endpoint paths, middleware, method types, and handler methods associated with each endpoint. These definitions are later used by the setRoutes() method to wire the app to each endpoint.
    *
    * @param {IBookmarkDao} bookmarkDao a bookmark dao implementing the BookmarkDao interface used to find resources in the database.
    */
-  public constructor(bookmarkDao: IBookmarkDao) {
-    this.path = '/api/v1';
+  public constructor(path: string, app: Express, bookmarkDao: IBookmarkDao) {
     this.bookmarkDao = bookmarkDao;
-    this.routes = [
-      {
-        path: '/users/:userId/tuits/:tuitId/bookmarks',
-        method: Methods.POST,
-        handler: this.create,
-      },
-      {
-        path: '/users/:userId/bookmarks',
-        method: Methods.GET,
-        handler: this.findAllByUser,
-      },
-      {
-        path: '/bookmarks/:bookmarkId',
-        method: Methods.DELETE,
-        handler: this.delete,
-      },
-      {
-        path: '/users/:userId/bookmarks/',
-        method: Methods.DELETE,
-        handler: this.deleleAllByUser,
-      },
-    ];
+    const router = Router();
+    router.post('/:userId/tuits/:tuitId/bookmarks', adaptRequest(this.create));
+    router.get('/:userId/bookmarks', adaptRequest(this.findAllByUser));
+    router.delete('/:userId/bookmarks/:bookmarkId', adaptRequest(this.delete));
+    router.delete('/:userId/bookmarks/', adaptRequest(this.deleteAllByUser));
+    app.use(path, router);
     Object.freeze(this); // Make thi obj immutable.
   }
 
@@ -79,7 +58,7 @@ export default class BookMarkController implements IBookMarkController {
     return { body: await this.bookmarkDao.delete(req.params.bookmarkId) };
   };
 
-  deleleAllByUser = async (req: HttpRequest): Promise<HttpResponse> => {
+  deleteAllByUser = async (req: HttpRequest): Promise<HttpResponse> => {
     const deletedCount: number = await this.bookmarkDao.deleteAllByUser(
       req.params.userId
     );

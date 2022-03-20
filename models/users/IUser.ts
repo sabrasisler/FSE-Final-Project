@@ -7,17 +7,16 @@ import { AccountType } from './AccoutType';
 export default interface IUser {
   username: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   bio: string;
-  dateOfBirth: Date;
+  birthday: Date;
   headerImage: string;
   profilePhoto: string;
-  accountType?: AccountType;
+  accountType: AccountType;
   accountStatus?: AccountStatus;
-  followerCount: number;
-  followeeCount: number;
+  followerCount?: number;
+  followeeCount?: number;
 
   // passwordEquals(password: string): boolean;
 }

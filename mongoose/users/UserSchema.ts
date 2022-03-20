@@ -24,21 +24,19 @@ import { formatJSON } from '../util/formatJSON';
  */
 const UserSchema = new mongoose.Schema<IUser>(
   {
-    username: { type: String, required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String },
+    username: { type: String },
+    name: { type: String, required: true },
     password: { type: String, select: false, required: true },
-    email: { type: String, select: false, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
     bio: { type: String },
-    dateOfBirth: { type: Date, required: true, select: false },
+    birthday: { type: Date },
     headerImage: { type: String },
     profilePhoto: { type: String },
     // location: { longitude: String, latitude: String, select: false },
     accountType: {
       type: String,
       enum: AccountType,
-      required: true,
-      select: false,
+      // required: true,
     },
     accountStatus: {
       type: String,

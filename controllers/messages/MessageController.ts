@@ -2,63 +2,50 @@ import IMessageController from './IMessageController';
 import IMessageDao from '../../daos/messages/IMessageDao';
 import IMessage from '../../models/messages/IMessage';
 import IConversation from '../../models/messages/IConversation';
-import { Methods } from '../shared/Methods';
-import IControllerRoute from '../shared/IControllerRoute';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
+import { Express, Router } from 'express';
+import { adaptRequest } from '../shared/adaptRequest';
 
 /**
  * Represents an implementation of an {@link IMessageController}
  */
 export default class MessageController implements IMessageController {
-  public readonly routes: IControllerRoute[];
-  public readonly path: string;
   private readonly messageDao: IMessageDao;
 
   /**
    * Constructs the message controller with a message dao dependency that implements {@link IMessageDao}.
    * @param messageDao the message dao
    */
-  public constructor(messageDao: IMessageDao) {
-    this.path = '/api/v1/users';
+  public constructor(path: string, app: Express, messageDao: IMessageDao) {
     this.messageDao = messageDao;
-    this.routes = [
-      {
-        path: '/:userId/messages',
-        method: Methods.GET,
-        handler: this.findLatestMessagesByUser,
-      },
-      {
-        path: '/:userId/messages/sent',
-        method: Methods.GET,
-        handler: this.findAllMessagesSentByUser,
-      },
-      {
-        path: '/:userId/conversations/:conversationId/messages',
-        method: Methods.GET,
-        handler: this.findAllMessagesByConversation,
-      },
-      {
-        path: '/:userId/conversations/',
-        method: Methods.POST,
-        handler: this.createConversation,
-      },
-      {
-        path: '/:userId/messages/',
-        method: Methods.POST,
-        handler: this.createMessage,
-      },
-      {
-        path: '/:userId/messages/:messageId',
-        method: Methods.DELETE,
-        handler: this.deleteMessage,
-      },
-      {
-        path: '/:userId/conversations/:conversationId',
-        method: Methods.DELETE,
-        handler: this.deleteConversation,
-      },
-    ];
+    const router: Router = Router();
+    router.get(
+      '/:userId/messages',
+      adaptRequest(this.findLatestMessagesByUser)
+    );
+    router.get(
+      '/:userId/messages/sent',
+      adaptRequest(this.findAllMessagesSentByUser)
+    );
+    router.get(
+      '/:userId/conversations/:conversationId/messages',
+      adaptRequest(this.findAllMessagesByConversation)
+    );
+    router.post(
+      '/:userId/conversations/',
+      adaptRequest(this.createConversation)
+    );
+    router.post('/:userId/messages/', adaptRequest(this.createMessage));
+    router.delete(
+      '/:userId/messages/:messageId',
+      adaptRequest(this.deleteMessage)
+    );
+    router.delete(
+      '/:userId/conversations/:conversationId',
+      adaptRequest(this.deleteConversation)
+    );
+    app.use(path, router);
     Object.freeze(this); // Make this object immutable.
   }
 

@@ -1,13 +1,13 @@
-import { HttpStatusCode } from '../controllers/shared/HttpStatusCode';
+import { StatusCode } from '../controllers/shared/HttpStatusCode';
 import BaseError from './BaseError';
 
 export default class MongooseException extends BaseError {
-  public code: HttpStatusCode;
+  public code: StatusCode;
 
   constructor(message: string, error?: unknown) {
     message = 'Mongoose Schema hook error: ' + message;
     super(message, error);
-    this.code = HttpStatusCode.internalError;
+    this.code = StatusCode.internalError;
     Object.freeze(this);
   }
 }

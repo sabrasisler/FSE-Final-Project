@@ -9,5 +9,5 @@ import { Methods } from './Methods';
 export default interface IControllerRoute {
   path: string;
   method: Methods;
-  handler: (req: HttpRequest) => Promise<HttpResponse>;
+  handler: (req: HttpRequest) => any;
 }

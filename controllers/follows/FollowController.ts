@@ -1,61 +1,37 @@
 import IFollowDao from '../../daos/follows/IFollowDao';
 import IFollow from '../../models/follows/IFollow';
 import IUser from '../../models/users/IUser';
-import IFollowService from '../../services/shared/IFollowService';
-import { createOkResponse } from '../shared/createHttpResponse';
+import { createOkResponse } from '../shared/createResponse';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
-import IControllerRoute from '../shared/IControllerRoute';
+import { Express, Router } from 'express';
 import { Methods } from '../shared/Methods';
 import IFollowController from './IFollowController';
+import { adaptRequest } from '../shared/adaptRequest';
 
 /**
  *  Controller that implements the path, routes, and methods for managing the  for the follows resource. Implements {@link IFollowController}. Takes {@link IFollow} DAO as dependency.
  */
 export default class FollowController implements IFollowController {
-  public readonly path: string;
-  public readonly routes: IControllerRoute[];
   private readonly followDao: IFollowDao;
 
   /**
    * Constructs the controller with a follow DAO, and defines the endpoint path and routes.
    * @param {IFollowDao} followDao an implementation of a follow DAO
    */
-  public constructor(followDao: IFollowDao) {
-    this.path = '/api/v1';
+  public constructor(path: string, app: Express, followDao: IFollowDao) {
     this.followDao = followDao;
-    this.routes = [
-      {
-        path: '/users/:userId/follows',
-        method: Methods.POST,
-        handler: this.createFollow,
-      },
-      {
-        path: '/users/:userId/follows',
-        method: Methods.DELETE,
-        handler: this.deleteFollow,
-      },
-      {
-        path: '/users/:userId/followers',
-        method: Methods.GET,
-        handler: this.findAllUsersFollowingUser,
-      },
-      {
-        path: '/users/:userId/following',
-        method: Methods.GET,
-        handler: this.findAllUsersThatUserIsFollowing,
-      },
-      {
-        path: '/users/:userId/follows/pending',
-        method: Methods.GET,
-        handler: this.findAllPendingFollows,
-      },
-      {
-        path: '/users/:userId/follows',
-        method: Methods.PUT,
-        handler: this.acceptFollow,
-      },
-    ];
+    const router = Router();
+    router.post('/:userId/follows', adaptRequest(this.createFollow));
+    router.get('/:userId/followers', adaptRequest(this.findAllFollowers));
+    router.get('/:userId/followees', adaptRequest(this.findAllFollowees));
+    router.get(
+      '/:userId/follows/pending',
+      adaptRequest(this.findAllPendingFollows)
+    );
+    router.get('/:userId/follows', adaptRequest(this.acceptFollow));
+    router.delete('/:userId/follows', adaptRequest(this.deleteFollow));
+    app.use(path, router);
   }
   /**
    * Calls the follow dao in state to create a new follow using the follower and followee id.
@@ -84,11 +60,10 @@ export default class FollowController implements IFollowController {
       body: deletedFollow,
     };
   };
-  findAllUsersThatUserIsFollowing = async (
-    req: HttpRequest
-  ): Promise<HttpResponse> => {
-    const allFollowees: IUser[] =
-      await this.followDao.findAllUsersThatUserIsFollowing(req.params.userId);
+  findAllFollowees = async (req: HttpRequest): Promise<HttpResponse> => {
+    const allFollowees: IUser[] = await this.followDao.findAllFollowees(
+      req.params.userId
+    );
     return createOkResponse(allFollowees);
   };
 
@@ -97,11 +72,10 @@ export default class FollowController implements IFollowController {
    * @param {HttpRequest} req the request object containing client data
    * @returns {HttpResponse} a response object with the all the users
    */
-  findAllUsersFollowingUser = async (
-    req: HttpRequest
-  ): Promise<HttpResponse> => {
-    const allFollowers: IUser[] =
-      await this.followDao.findAllUsersFollowingUser(req.params.userId);
+  findAllFollowers = async (req: HttpRequest): Promise<HttpResponse> => {
+    const allFollowers: IUser[] = await this.followDao.findAllFollowers(
+      req.params.userId
+    );
     return createOkResponse(allFollowers);
   };
 

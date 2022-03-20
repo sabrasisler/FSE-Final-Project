@@ -1,4 +1,4 @@
-import IDao from '../IDao';
+import IDao from '../shared/IDao';
 import { UserDaoErrors } from './UserDaoErrors';
 import { Model } from 'mongoose';
 import IUser from '../../models/users/IUser';
@@ -30,7 +30,7 @@ export default class UserDao implements IDao<IUser> {
   findAll = async (): Promise<IUser[]> => {
     try {
       const dbUsers = await this.model.find().exec();
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         dbUsers,
         UserDaoErrors.USER_NOT_FOUND
       );
@@ -42,15 +42,27 @@ export default class UserDao implements IDao<IUser> {
     }
   };
 
+  exists = async (user: IUser): Promise<boolean> => {
+    try {
+      const dbUser: IUser | null = await this.model.findOne({
+        email: user.email,
+      });
+      console.log(dbUser);
+      if (dbUser === null) return false;
+      else return true;
+    } catch (err) {
+      throw this.errorHandler.handleError(UserDaoErrors.DB_ERROR_EXISTS, err);
+    }
+  };
   /**
    * Finds a single user in the database by its specified id.
    * @param {string} userId the id of the user
    * @returns the user
    */
-  findById = async (uid: string): Promise<IUser> => {
+  findById = async (id: string): Promise<IUser> => {
     try {
-      const dbUser: IUser | null = await this.model.findById(uid);
-      return this.errorHandler.handleNull(
+      const dbUser: IUser | null = await this.model.findOne({ _id: id });
+      return this.errorHandler.objectOrNullException(
         dbUser,
         UserDaoErrors.USER_DOES_NOT_EXIST
       );
@@ -71,13 +83,14 @@ export default class UserDao implements IDao<IUser> {
     try {
       const newUser: IUser | null = await this.model.findOneAndUpdate(
         { email: user.email },
-        { user },
+        { ...user },
         {
           upsert: true,
           new: true,
         }
       );
-      return this.errorHandler.handleNull(
+      console.log(newUser);
+      return this.errorHandler.objectOrNullException(
         newUser,
         UserDaoErrors.USER_NOT_FOUND
       );
@@ -95,17 +108,16 @@ export default class UserDao implements IDao<IUser> {
    * @param {IUser} user the user with the information used for the update.
    * @returns the updated user
    */
-  update = async (uid: string, user: any): Promise<IUser> => {
-    const validatedUser = new User(user);
+  update = async (uid: string, user: IUser): Promise<IUser> => {
     try {
       const updatedUser: IUser | null = await this.model.findOneAndUpdate(
         { _id: uid },
-        user,
+        { ...user },
         {
           new: true,
         }
       );
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         updatedUser,
         UserDaoErrors.NO_USER_TO_UPDATE
       );
@@ -125,7 +137,7 @@ export default class UserDao implements IDao<IUser> {
   delete = async (uid: string): Promise<IUser> => {
     try {
       const deletedUser: IUser | null = await this.model.findByIdAndDelete(uid);
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         deletedUser,
         UserDaoErrors.USER_DOES_NOT_EXIST
       );

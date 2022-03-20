@@ -1,4 +1,4 @@
-import IDao from '../IDao';
+import IDao from '../shared/IDao';
 import { Model } from 'mongoose';
 import ILikeDao from './ILikeDao';
 import ILike from '../../models/likes/ILike';
@@ -36,7 +36,10 @@ export class LikeDao implements ILikeDao {
       const like: ILike | null = await (
         await this.likeModel.create({ user: userId, tuit: tuitId })
       ).populate('tuit');
-      return this.errorHandler.handleNull(like, LikeDaoErrors.LIKE_NOT_FOUND);
+      return this.errorHandler.objectOrNullException(
+        like,
+        LikeDaoErrors.LIKE_NOT_FOUND
+      );
     } catch (err) {
       console.log('ERROR: ' + err);
       throw this.errorHandler.handleError(
@@ -61,7 +64,7 @@ export class LikeDao implements ILikeDao {
         })
         .populate('tuit');
       likeToDelete?.remove();
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         likeToDelete,
         LikeDaoErrors.DELETED_LIKE_NOT_FOUND
       );
@@ -90,7 +93,7 @@ export class LikeDao implements ILikeDao {
       likes.map((like) => {
         users.push(like.user);
       });
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         users,
         LikeDaoErrors.NO_USERS_FOUND_FOR_LIKE
       );
@@ -117,7 +120,7 @@ export class LikeDao implements ILikeDao {
       likes.map((like) => {
         tuits.push(like.tuit);
       });
-      return this.errorHandler.handleNull(
+      return this.errorHandler.objectOrNullException(
         tuits,
         LikeDaoErrors.NO_TUITS_FOUND_FOR_LIKE
       );
