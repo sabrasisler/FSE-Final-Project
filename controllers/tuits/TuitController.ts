@@ -61,7 +61,6 @@ export default class TuitController implements ITuitController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   create = async (req: HttpRequest): Promise<HttpResponse> => {
-    console.log('create tuit controller');
     return {
       body: await this.tuitDao.create({
         ...req.body,

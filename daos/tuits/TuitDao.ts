@@ -115,6 +115,7 @@ export default class TuitDao implements ITuitDao {
       const existingUser: IUser | null = await this.userModel.findById(
         tuitData.author
       );
+
       if (existingUser === null) {
         throw new DaoNullException(TuitDaoErrors.NO_USER_FOUND);
       } else {
@@ -166,14 +167,10 @@ export default class TuitDao implements ITuitDao {
    * @param {string} tuitId the id of the tuit.
    * @returns the deleted tuit
    */
-  delete = async (tuitId: string): Promise<ITuit> => {
+  delete = async (tuitId: string): Promise<number> => {
     try {
-      const tuitToDelete = await this.tuitModel.findById(tuitId);
-      await tuitToDelete?.remove();
-      return this.errorHandler.objectOrNullException(
-        tuitToDelete,
-        TuitDaoErrors.TUIT_NOT_FOUND
-      );
+      const tuitToDelete = await this.tuitModel.deleteOne({ _id: tuitId });
+      return tuitToDelete.deletedCount;
     } catch (err) {
       throw this.errorHandler.handleError(
         TuitDaoErrors.DB_ERROR_DELETING_TUIT,

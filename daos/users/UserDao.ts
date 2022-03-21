@@ -89,7 +89,6 @@ export default class UserDao implements IDao<IUser> {
           new: true,
         }
       );
-      console.log(newUser);
       return this.errorHandler.objectOrNullException(
         newUser,
         UserDaoErrors.USER_NOT_FOUND
@@ -134,13 +133,10 @@ export default class UserDao implements IDao<IUser> {
    * @param userId the id of the user.
    * @returns the deleted user
    */
-  delete = async (uid: string): Promise<IUser> => {
+  delete = async (userId: string): Promise<number> => {
     try {
-      const deletedUser: IUser | null = await this.model.findByIdAndDelete(uid);
-      return this.errorHandler.objectOrNullException(
-        deletedUser,
-        UserDaoErrors.USER_DOES_NOT_EXIST
-      );
+      const userToDelete = await this.model.deleteOne({ _id: userId });
+      return userToDelete.deletedCount;
     } catch (err) {
       throw this.errorHandler.handleError(
         UserDaoErrors.CANNOT_DELETE_USER,

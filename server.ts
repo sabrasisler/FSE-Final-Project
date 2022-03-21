@@ -10,7 +10,6 @@ import {
 
 dotenv.config();
 const app = express();
-
 configDatabase(process.env.MONGO_URL!);
 configGlobalMiddleware(app);
 createControllers(app);

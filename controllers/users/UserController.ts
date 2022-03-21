@@ -30,7 +30,7 @@ export class UserController {
     this.dao = dao;
     const router = Router();
     router.get('/', adaptRequest(this.findAll));
-    router.post('/', adaptRequest(this.create));
+    router.post('/', validateProfile, adaptRequest(this.create));
     router.get('/:userId', adaptRequest(this.findById));
     router.put(
       '/:userId',
@@ -70,8 +70,7 @@ export class UserController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   create = async (req: HttpRequest): Promise<HttpResponse> => {
-    const validatedUser: IUser = new User({ ...req.body });
-    const dbUser = await this.dao.create(validatedUser);
+    const dbUser = await this.dao.create(req.body);
     return createOkResponse(dbUser);
   };
 
@@ -91,7 +90,7 @@ export class UserController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   delete = async (req: HttpRequest): Promise<HttpResponse> => {
-    const deletedUser: IUser = await this.dao.delete(req.params.userId);
-    return createOkResponse(deletedUser);
+    const deleteCount: number = await this.dao.delete(req.params.userId);
+    return createOkResponse(deleteCount);
   };
 }
