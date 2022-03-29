@@ -17,6 +17,7 @@ const createGlobalMiddleware = (app: Express) => {
       credentials: true,
       origin: process.env.CLIENT_URL!,
       methods: 'GET, POST, PUT, DELETE',
+      preflightContinue: true,
     }),
   ];
 
