@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node build/server.js",
     "dev": "nodemon ./server.ts",
-    "build": "rm -r build; tsc --project ./",
+    "build": "tsc --project ./",
     "test": "jest --watchAll --detectOpenHandles --verbose --coverage",
     "postinstall": "npm run build",
     "docs": "rm -r build;  tsc --project ./; jsdoc --configure jsdoc.json --verbose"
