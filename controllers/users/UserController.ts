@@ -4,16 +4,13 @@ import IUser from '../../models/users/IUser';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
 import User from '../../models/users/User';
-import { createOkResponse } from '../shared/createResponse';
+import { okResponse } from '../shared/createResponse';
 import { Express, Router } from 'express';
 import { adaptRequest } from '../shared/adaptRequest';
 import { isAuthenticated } from '../auth/isAuthenticated';
-import {
-  validatePassword,
-  validateProfile,
-  validationResults,
-} from '../middleware/validateProfile';
+import { validatePassword, validateProfile } from '../middleware/validateUser';
 import { body, validationResult } from 'express-validator';
+import { validateResults } from '../middleware/validateResults';
 
 /**
  * Processes the requests and responses dealing with the user resource. Implements {@link IController}.
@@ -36,7 +33,7 @@ export class UserController {
       '/:userId',
       isAuthenticated,
       validateProfile,
-      validationResults,
+      validateResults,
       adaptRequest(this.update)
     );
     router.delete('/:userId', adaptRequest(this.delete));
@@ -51,7 +48,7 @@ export class UserController {
    */
   findAll = async (): Promise<HttpResponse> => {
     const allUsers: IUser[] = await this.dao.findAll();
-    return createOkResponse(allUsers);
+    return okResponse(allUsers);
   };
 
   /**
@@ -61,7 +58,7 @@ export class UserController {
    */
   findById = async (req: HttpRequest): Promise<HttpResponse> => {
     const dbUser: IUser = await this.dao.findById(req.params.userId);
-    return createOkResponse(dbUser);
+    return okResponse(dbUser);
   };
 
   /**
@@ -71,7 +68,7 @@ export class UserController {
    */
   create = async (req: HttpRequest): Promise<HttpResponse> => {
     const dbUser = await this.dao.create(req.body);
-    return createOkResponse(dbUser);
+    return okResponse(dbUser);
   };
 
   /**
@@ -81,7 +78,7 @@ export class UserController {
    */
   update = async (req: HttpRequest): Promise<HttpResponse> => {
     const updatedUser = await this.dao.update(req.params.userId, req.body);
-    return createOkResponse(updatedUser);
+    return okResponse(updatedUser);
   };
 
   /**
@@ -91,6 +88,6 @@ export class UserController {
    */
   delete = async (req: HttpRequest): Promise<HttpResponse> => {
     const deleteCount: number = await this.dao.delete(req.params.userId);
-    return createOkResponse(deleteCount);
+    return okResponse(deleteCount);
   };
 }

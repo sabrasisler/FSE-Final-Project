@@ -7,6 +7,7 @@ import {
   handleCentralError,
   handleUncaughtException,
 } from './errors/handleCentralError';
+import { Socket } from 'net';
 
 dotenv.config();
 const app = express();
@@ -15,7 +16,6 @@ configGlobalMiddleware(app);
 createControllers(app);
 app.use(handleCentralError);
 handleUncaughtException();
-
 app.listen(process.env.PORT! || 4000, () => {
   console.log(`Up and running on port ${process.env.PORT! || 4000}`);
 });

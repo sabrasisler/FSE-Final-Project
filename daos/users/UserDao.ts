@@ -47,7 +47,6 @@ export default class UserDao implements IDao<IUser> {
       const dbUser: IUser | null = await this.model.findOne({
         email: user.email,
       });
-      console.log(dbUser);
       if (dbUser === null) return false;
       else return true;
     } catch (err) {
@@ -62,6 +61,23 @@ export default class UserDao implements IDao<IUser> {
   findById = async (id: string): Promise<IUser> => {
     try {
       const dbUser: IUser | null = await this.model.findOne({ _id: id });
+      return this.errorHandler.objectOrNullException(
+        dbUser,
+        UserDaoErrors.USER_DOES_NOT_EXIST_ID
+      );
+    } catch (err) {
+      throw this.errorHandler.handleError(
+        UserDaoErrors.DB_ERROR_FINDING_USER,
+        err
+      );
+    }
+  };
+
+  findByField = async (emailOrUsername: string): Promise<IUser> => {
+    try {
+      const dbUser: IUser | null = await this.model.findOne({
+        $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
+      });
       return this.errorHandler.objectOrNullException(
         dbUser,
         UserDaoErrors.USER_DOES_NOT_EXIST

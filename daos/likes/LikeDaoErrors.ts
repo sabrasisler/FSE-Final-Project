@@ -12,4 +12,6 @@ export enum LikeDaoErrors {
   DB_ERROR_USERS_BY_LIKE = 'Database error in retrieving users for this like.',
   NO_TUITS_FOUND_FOR_LIKE = 'No tuits found for this like',
   DB_ERROR_TUITS_BY_LIKE = 'Database error in retrieving tuits by like',
+  TUIT_NOT_FOUND = 'Tuit not found after updating likes.',
+  STATS_NOT_UPDATED = 'Error updating tuit stats.',
 }

@@ -8,13 +8,8 @@ import IGenericController from '../shared/IGenericController';
  */
 export default interface ILikeController {
   userLikesTuit(req: HttpRequest): Promise<HttpResponse>;
-
-  userUnlikesTuit(req: HttpRequest): Promise<HttpResponse>;
-
+  userDislikesTuit(req: HttpRequest): Promise<HttpResponse>;
   findAllUsersByTuitLike(req: HttpRequest): Promise<HttpResponse>;
-
-  /**
-   * Processes the request of getting all tuits liked by a user.
-   */
   findAllTuitsLikedByUser(req: HttpRequest): Promise<HttpResponse>;
+  findAllTuitsDislikedByUser(req: HttpRequest): Promise<HttpResponse>;
 }

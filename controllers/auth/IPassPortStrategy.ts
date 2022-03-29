@@ -4,10 +4,5 @@ import IUser from '../../models/users/IUser';
 import IValidator from '../../shared/IValidator';
 
 export default interface IPassPortStrategy {
-  execute(
-    path: string,
-    router: Router,
-    dao: IDao<IUser>,
-    validator: IValidator<IUser>
-  ): void;
+  execute(path: string, router: Router, dao: IDao<IUser>): void;
 }

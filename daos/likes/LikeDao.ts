@@ -6,12 +6,16 @@ import IUser from '../../models/users/IUser';
 import ITuit from '../../models/tuits/ITuit';
 import IErrorHandler from '../../errors/IErrorHandler';
 import { LikeDaoErrors } from './LikeDaoErrors';
+import Tuit from '../../models/tuits/Tuit';
+import DaoDatabaseException from '../../errors/DaoDatabseException';
 
 /**
  * Handles database CRUD operations for the likes resource. Implements {@link ILikeDao} and works with the mongoose {@link LikeModel} to access the database.
  */
 export class LikeDao implements ILikeDao {
   private readonly likeModel: Model<ILike>;
+  private readonly dislikeModel: Model<ILike>;
+  private readonly tuitModel: Model<ITuit>;
   private readonly errorHandler: IErrorHandler;
 
   /**
@@ -19,60 +23,118 @@ export class LikeDao implements ILikeDao {
    * @param {LikeModel} likeModel the like model for the database operations
    * @param {IErrorHandler} errorHandler the error handler to process all errors
    */
-  public constructor(likeModel: Model<ILike>, errorHandler: IErrorHandler) {
+  public constructor(
+    likeModel: Model<ILike>,
+    dislikeModel: Model<ILike>,
+    tuitModel: Model<ITuit>,
+    errorHandler: IErrorHandler
+  ) {
     this.likeModel = likeModel;
+    this.dislikeModel = dislikeModel;
+    this.tuitModel = tuitModel;
     this.errorHandler = errorHandler;
     Object.freeze(this); // Make this object immutable.
   }
 
-  /**
-   * Creates a like document when a user likes a tuit. Also populates the liked tuit.
-   * @param userId the id of the user
-   * @param tuitId the id of the tuit
-   * @returns the new like document, retrieved from the LikeModel
-   */
-  userLikesTuit = async (userId: string, tuitId: string): Promise<ILike> => {
+  createLike = async (userId: string, tuitId: string): Promise<ITuit> => {
     try {
-      const like: ILike | null = await (
-        await this.likeModel.create({ user: userId, tuit: tuitId })
-      ).populate('tuit');
+      await this.likeModel.create({
+        user: userId,
+        tuit: tuitId,
+      });
+      const updatedTuit = await this.tuitModel.findOneAndUpdate(
+        { _id: tuitId },
+        { $inc: { 'stats.likes': 1 }, $addToSet: { likedBy: [userId] } },
+        { new: true }
+      );
       return this.errorHandler.objectOrNullException(
-        like,
-        LikeDaoErrors.LIKE_NOT_FOUND
+        updatedTuit,
+        'Failed to update tuit stats after creating like'
       );
     } catch (err) {
-      console.log('ERROR: ' + err);
-      throw this.errorHandler.handleError(
-        LikeDaoErrors.DB_ERROR_LIKE_TUIT,
-        err
-      );
+      throw new DaoDatabaseException('Failed to create like.', err);
     }
   };
 
-  /**
-   * Deletes a like document for the specified user and tuit, and returns the deleted like with a populated tuit.
-   * @param {string} userId the id of the user
-   * @param {string} tuitId the id of the tuit
-   * @returns the deleted like document, returned from the LikeModel after deletion occurs successfully
-   */
-  userUnlikesTuit = async (userId: string, tuitId: string): Promise<ILike> => {
+  createDislike = async (userId: string, tuitId: string): Promise<ITuit> => {
     try {
-      const likeToDelete = await this.likeModel
-        .findOne({
-          user: userId,
-          tuit: tuitId,
-        })
-        .populate('tuit');
-      likeToDelete?.remove();
+      await this.dislikeModel.create({
+        user: userId,
+        tuit: tuitId,
+      });
+      const updatedTuit = await this.tuitModel.findOneAndUpdate(
+        { _id: tuitId },
+        { $inc: { 'stats.dislikes': 1 }, $addToSet: { dislikedBy: [userId] } },
+        { new: true }
+      );
       return this.errorHandler.objectOrNullException(
-        likeToDelete,
-        LikeDaoErrors.DELETED_LIKE_NOT_FOUND
+        updatedTuit,
+        'Failed to update tuit stats after creating dislike'
       );
     } catch (err) {
-      throw this.errorHandler.handleError(
-        LikeDaoErrors.DB_ERROR_UNLIKE_TUIT,
-        err
+      throw new DaoDatabaseException('Failed to create dislike.', err);
+    }
+  };
+
+  findLike = async (userId: string, tuitId: string): Promise<ILike | null> => {
+    try {
+      return await this.likeModel.findOne({ user: userId, tuit: tuitId });
+    } catch (err) {
+      throw new DaoDatabaseException('Failed to find like.', err);
+    }
+  };
+
+  findDislike = async (
+    userId: string,
+    tuitId: string
+  ): Promise<ILike | null> => {
+    try {
+      return await this.dislikeModel.findOne({ user: userId, tuit: tuitId });
+    } catch (err) {
+      throw new DaoDatabaseException('Failed to find dislike.', err);
+    }
+  };
+
+  deleteLike = async (userId: string, tuitId: string): Promise<ITuit> => {
+    try {
+      const deletedLike = await this.likeModel.deleteOne(
+        { user: userId, tuit: tuitId },
+        { new: true }
       );
+      const updatedTuit = await this.tuitModel.findOneAndUpdate(
+        { _id: tuitId, 'stats.likes': { $gt: 0 } },
+        { $inc: { 'stats.likes': -1 }, $pull: { likedBy: { $in: [userId] } } },
+        { new: true }
+      );
+      return this.errorHandler.objectOrNullException(
+        updatedTuit,
+        'Error updating tuit after deleting like: Tuit not found.'
+      );
+    } catch (err) {
+      throw new DaoDatabaseException('Failed to delete like.', err);
+    }
+  };
+
+  deleteDislike = async (userId: string, tuitId: string): Promise<ITuit> => {
+    try {
+      const deletedDislike = await this.dislikeModel.deleteOne(
+        { user: userId, tuit: tuitId },
+        { new: true }
+      );
+      const updatedTuit = await this.tuitModel.findOneAndUpdate(
+        { _id: tuitId, 'stats.dislikes': { $gt: 0 } },
+        {
+          $inc: { 'stats.dislikes': -1 },
+          $pull: { dislikedBy: { $in: [userId] } },
+        },
+        { new: true }
+      );
+      return this.errorHandler.objectOrNullException(
+        updatedTuit,
+        'Error updating tuit after deleting dislike: Tuit not found.'
+      );
+    } catch (err) {
+      throw new DaoDatabaseException('Failed to delete dislike.', err);
     }
   };
 
@@ -113,6 +175,27 @@ export class LikeDao implements ILikeDao {
   findAllTuitsLikedByUser = async (userId: string): Promise<ITuit[]> => {
     try {
       const likes: ILike[] = await this.likeModel
+        .find({ user: userId })
+        .populate({ path: 'tuit' })
+        .exec();
+      const tuits: ITuit[] = [];
+      likes.map((like) => {
+        tuits.push(like.tuit);
+      });
+      return this.errorHandler.objectOrNullException(
+        tuits,
+        LikeDaoErrors.NO_TUITS_FOUND_FOR_LIKE
+      );
+    } catch (err) {
+      throw this.errorHandler.handleError(
+        LikeDaoErrors.DB_ERROR_TUITS_BY_LIKE,
+        err
+      );
+    }
+  };
+  findAllTuitsDislikedByUser = async (userId: string): Promise<ITuit[]> => {
+    try {
+      const likes: ILike[] = await this.dislikeModel
         .find({ user: userId })
         .populate({ path: 'tuit' })
         .exec();

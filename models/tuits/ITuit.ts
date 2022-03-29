@@ -6,7 +6,13 @@ import IUser from '../users/IUser';
 export default interface ITuit {
   tuit: string;
   author: IUser;
+  stats?: {
+    likes: number;
+    dislikes: number;
+    replies: number;
+    retuits: number;
+  };
   postedDate?: Date;
-  likeCount?: number;
-  replyCount?: number;
+  likedBy?: [];
+  dislikedBy?: [];
 }

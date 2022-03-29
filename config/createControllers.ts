@@ -26,14 +26,16 @@ import {
   messageDao,
 } from './createDaos';
 import PassportLocalStrategy from '../controllers/auth/PassportLocalStrategy';
+import BcryptHasher from '../controllers/auth/BcryptHasher';
 
 let alreadyCreated = false;
 
+const hasher = new BcryptHasher(10);
+
 const passportAuthStrategies: Array<IPassPortStrategy> = [
   new PassportGoogleStrategy(),
-  new PassportLocalStrategy(),
+  new PassportLocalStrategy(hasher),
 ];
-const userValidator: IValidator<IUser> = new UserValidator();
 
 const createControllers = (app: Express): void => {
   if (alreadyCreated) {
@@ -45,12 +47,7 @@ const createControllers = (app: Express): void => {
     userDao
   );
   const passportAuthController: PassportAuthController =
-    new PassportAuthController(
-      app,
-      userDao,
-      userValidator,
-      passportAuthStrategies
-    );
+    new PassportAuthController(app, userDao, passportAuthStrategies, hasher);
   const tuitController: ITuitController = new TuitController(
     '/api/v1',
     app,
@@ -69,7 +66,8 @@ const createControllers = (app: Express): void => {
   const likeController: ILikeController = new LikeController(
     '/api/v1/',
     app,
-    likeDao
+    likeDao,
+    tuitDao
   );
 
   const messageController: IMessageController = new MessageController(

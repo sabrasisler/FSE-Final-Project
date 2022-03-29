@@ -9,6 +9,7 @@ import IUser from '../../models/users/IUser';
 import { IUserDao } from '../../daos/users/IUserDao';
 import AuthException from './AuthException';
 import { StatusCode } from '../shared/HttpStatusCode';
+import { handleCentralError } from '../../errors/handleCentralError';
 dotenv.config();
 
 export default class PassportGoogleStrategy implements IPassportStrategy {
@@ -43,7 +44,7 @@ export default class PassportGoogleStrategy implements IPassportStrategy {
             const dbUser: IUser = await dao.create(user);
             return done(null, dbUser);
           } catch (err) {
-            return done(err);
+            return done(err, null);
           }
         }
       )
@@ -57,36 +58,77 @@ export default class PassportGoogleStrategy implements IPassportStrategy {
     //   passport.authenticate('google', {
     //     successReturnToOrRedirect: process.env.CLIENT_URL!,
     //     failureRedirect: `${path}/login/failed`,
-    //   }, )
+    //   })
+    // );
+
+    // router.get(
+    //   '/google/callback',
+    //   (
+    //     req: Request,
+    //     res: Response,
+    //     next: NextFunction // Wrap authenticate call to handle errors.
+    //   ) =>
+    //     passport.authenticate(
+    //       'google',
+    //       // {
+    //       //   successReturnToOrRedirect: process.env.CLIENT_URL!,
+    //       //   failureRedirect: `${path}/login/failed`,
+    //       // },
+    //       (err, user) => {
+    //         if (err) {
+    //           return next(new AuthException('Google login failed', err));
+    //         }
+
+    //         //No user found?
+    //         if (!user) {
+    //           return next(new AuthException('Google user not found.'));
+    //         }
+
+    //         //User pending approval?
+    //         if (user.isPending) {
+    //           return next(new AuthException('Google user pending approval'));
+    //         }
+
+    //         //User archived?
+    //         if (user.isArchived) {
+    //           return next(new AuthException('Google user archived'));
+    //         }
+
+    //         //Set user in request
+    //         req.logIn(user, (error) => {
+    //           console.log('error?', error);
+    //           if (error) {
+    //             return next(
+    //               new AuthException(
+    //                 'Failed to log user in after Google authentication'
+    //               )
+    //             );
+    //           }
+    //           console.log(req.user);
+    //           return res.redirect(`${process.env.CLIENT_URL!}`);
+    //           // next();
+    //         });
+    //         // req.user = user;
+    //         // console.log(user);
+    //         // next();
+    //       }
+    //     )(req, res, next)
     // );
 
     router.get(
       '/google/callback',
-      (
-        req: Request,
-        res: Response,
-        next: NextFunction // Wrap authenticate call to handle errors.
-      ) =>
-        passport.authenticate(
-          'google',
-          {
-            successReturnToOrRedirect: process.env.CLIENT_URL!,
-            failureRedirect: `${path}/login/failed`,
-          },
-          (err, user, info) => {
-            if (err) {
-              res.redirect(`${process.env.CLIENT_URL!}/error`);
-              // TODO: Logger here
-              console.log('ERROR', err);
-              next();
-            } else {
-              req.logIn(user, function (err) {
-                if (err) res.redirect(`${process.env.CLIENT_URL!}/error`);
-                res.redirect(`${process.env.CLIENT_URL!}`);
-              });
-            }
-          }
-        )(req, res, next)
+      passport.authenticate('google', {
+        successReturnToOrRedirect: process.env.CLIENT_URL!,
+        failureRedirect: `${process.env.CLIENT_URL!}/error`,
+      })
     );
+
+    // router.get(
+    //   '/google/callback',
+    //   passport.authenticate('google', {
+    //     successReturnToOrRedirect: process.env.CLIENT_URL!,
+    //     failureRedirect: `${process.env.CLIENT_URL!}/error`,
+    //   })
+    // );
   }
 }

@@ -8,6 +8,7 @@ const adaptRequest =
     const request: HttpRequest = {
       params: req.params,
       body: req.body,
+      user: req.user,
       all: { ...req },
     };
     try {

@@ -1,7 +1,7 @@
 import IFollowDao from '../../daos/follows/IFollowDao';
 import IFollow from '../../models/follows/IFollow';
 import IUser from '../../models/users/IUser';
-import { createOkResponse } from '../shared/createResponse';
+import { okResponse } from '../shared/createResponse';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
 import { Express, Router } from 'express';
@@ -43,7 +43,7 @@ export default class FollowController implements IFollowController {
       req.params.userId,
       req.body.followeeId
     );
-    return createOkResponse(newFollow);
+    return okResponse(newFollow);
   };
 
   /**
@@ -64,7 +64,7 @@ export default class FollowController implements IFollowController {
     const allFollowees: IUser[] = await this.followDao.findAllFollowees(
       req.params.userId
     );
-    return createOkResponse(allFollowees);
+    return okResponse(allFollowees);
   };
 
   /**
@@ -76,7 +76,7 @@ export default class FollowController implements IFollowController {
     const allFollowers: IUser[] = await this.followDao.findAllFollowers(
       req.params.userId
     );
-    return createOkResponse(allFollowers);
+    return okResponse(allFollowers);
   };
 
   /**
@@ -103,6 +103,6 @@ export default class FollowController implements IFollowController {
       req.body.followerId,
       req.params.userId
     );
-    return createOkResponse(updatedAcceptedFollow);
+    return okResponse(updatedAcceptedFollow);
   };
 }

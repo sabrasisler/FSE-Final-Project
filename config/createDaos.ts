@@ -11,8 +11,10 @@ import ITuitDao from '../daos/tuits/ITuitDao';
 import TuitDao from '../daos/tuits/TuitDao';
 import UserDao from '../daos/users/UserDao';
 import DaoErrorHandler from '../errors/DaoErrorHandler';
+import ITuit from '../models/tuits/ITuit';
 import IUser from '../models/users/IUser';
 import BookmarkModel from '../mongoose/bookmarks/BookmarkModel';
+import DislikeModel from '../mongoose/dislikes/DislikeModel';
 import FollowModel from '../mongoose/follows/FollowModel';
 import LikeModel from '../mongoose/likes/LikeModel';
 import ConversationModel from '../mongoose/messages/ConversationModel';
@@ -30,8 +32,13 @@ export const followDao: IFollowDao = new FollowDao(
   FollowModel,
   daoErrorHandler
 );
-export const likeDao: ILikeDao = new LikeDao(LikeModel, daoErrorHandler);
-export const tuitDao: ITuitDao = new TuitDao(
+export const likeDao: ILikeDao = new LikeDao(
+  LikeModel,
+  DislikeModel,
+  TuitModel,
+  daoErrorHandler
+);
+export const tuitDao: IDao<ITuit> = new TuitDao(
   TuitModel,
   UserModel,
   daoErrorHandler

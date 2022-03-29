@@ -26,7 +26,7 @@ const UserSchema = new mongoose.Schema<IUser>(
   {
     username: { type: String },
     name: { type: String, required: true },
-    password: { type: String, select: false, required: true },
+    password: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     bio: { type: String },
     birthday: { type: Date },

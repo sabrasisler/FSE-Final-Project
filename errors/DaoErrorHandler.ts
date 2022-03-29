@@ -43,4 +43,11 @@ export default class DaoErrorHandler implements IErrorHandler {
     }
     return object;
   };
+
+  public returnEmptyObjIfNull = <T>(object: T): any => {
+    if (object === null) {
+      return {};
+    }
+    return object;
+  };
 }

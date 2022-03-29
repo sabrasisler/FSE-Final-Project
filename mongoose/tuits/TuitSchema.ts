@@ -2,6 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import MongooseException from '../../errors/MongooseException';
 import ITuit from '../../models/tuits/ITuit';
 import BookmarkModel from '../bookmarks/BookmarkModel';
+import DislikeModel from '../dislikes/DislikeModel';
 import LikeModel from '../likes/LikeModel';
 import UserModel from '../users/UserModel';
 import UserSchema from '../users/UserSchema';
@@ -23,8 +24,18 @@ const TuitSchema = new mongoose.Schema<ITuit>(
     author: { type: Schema.Types.ObjectId, ref: 'UserModel', required: true },
     tuit: { type: String, required: true },
     postedDate: { type: Date, required: true, default: Date.now },
-    likeCount: { type: Number, default: 0 },
-    replyCount: { type: Number, default: 0 },
+    stats: {
+      likes: { type: Number, default: 0 },
+      replies: { type: Number, default: 0 },
+      dislikes: { type: Number, default: 0 },
+      retuits: { type: Number, default: 0 },
+    },
+    likedBy: [
+      { type: Schema.Types.ObjectId, ref: 'UserModel', required: true },
+    ],
+    dislikedBy: [
+      { type: Schema.Types.ObjectId, ref: 'UserModel', required: true },
+    ],
   },
   { timestamps: true, collection: 'tuits' }
 );
@@ -54,9 +65,11 @@ TuitSchema.pre('save', async function (next) {
 /**
  * Delete all the likes and bookmarks for this tuit.
  */
-TuitSchema.post('remove', async function (next) {
-  await LikeModel.deleteMany({ tuit: this._id });
-  await BookmarkModel.deleteMany({ tuit: this._id });
+TuitSchema.post('deleteOne', async function (next) {
+  const tuitId = this.getQuery()._id;
+  await LikeModel.deleteMany({ tuit: tuitId });
+  await DislikeModel.deleteMany({ tuit: tuitId });
+  await BookmarkModel.deleteMany({ tuit: tuitId });
 });
 
 formatJSON(TuitSchema);

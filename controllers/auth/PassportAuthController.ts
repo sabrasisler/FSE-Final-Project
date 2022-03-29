@@ -1,45 +1,52 @@
 import dotenv from 'dotenv';
-import passport, { authenticate } from 'passport';
+import passport from 'passport';
 import IDao from '../../daos/shared/IDao';
 import IUser from '../../models/users/IUser';
 import { Request, Response, NextFunction, Express, Router } from 'express';
 import IPassportStrategy from './IPassPortStrategy';
 import { StatusCode as Code, StatusCode } from '../shared/HttpStatusCode';
 import UnauthorizedException from './UnauthorizedException';
-import IValidator from '../../shared/IValidator';
 import UserExistsException from './UserExistsException';
-import { abort, nextTick } from 'process';
+import IHasher from './IHasher';
+import { validateRegistration } from '../middleware/validateUser';
+import { validateResults } from '../middleware/validateResults';
 dotenv.config();
 
 export default class PassportAuthController {
   private readonly dao: IDao<IUser>;
-  private readonly validator: IValidator<IUser>;
   private readonly path: string;
+  private readonly hasher: IHasher;
 
   public constructor(
     app: Express,
     dao: IDao<IUser>,
-    validator: IValidator<IUser>,
-    strategies: IPassportStrategy[]
+    strategies: IPassportStrategy[],
+    hasher: IHasher
   ) {
     this.dao = dao;
-    this.validator = validator;
+    this.hasher = hasher;
+
     this.path = '/api/v1/auth';
     const router = Router();
     router.get('/profile', this.getProfile);
     router.get('/login/failed', this.failLogin);
-    router.get('/logout', this.logout);
+    router.post('/logout', this.logout);
+    // router.post(
+    //   '/login',
+    //   passport.authenticate('local', {
+    //     failureRedirect: `${this.path}/login/failed`,
+    //   }),
+    //   this.getProfile
+    // );
     router.post(
-      '/login',
-      passport.authenticate('local', {
-        failureRedirect: `${this.path}/login/failed`,
-      }),
-      this.getProfile
+      '/register',
+      validateRegistration,
+      validateResults,
+      this.register
     );
-    router.post('/register', this.register);
 
     for (const strategy of strategies) {
-      strategy.execute(this.path, router, dao, this.validator);
+      strategy.execute(this.path, router, dao);
     }
     app.use(this.path, router);
 
@@ -55,32 +62,35 @@ export default class PassportAuthController {
     if (req.user) {
       res.status(Code.ok).json(req.user);
     } else {
-      throw new UnauthorizedException('Failed to get profile. Unauthorized.');
+      throw new UnauthorizedException(
+        'Failed to get user session. Unauthorized.'
+      );
     }
   };
 
   failLogin = (res: Response): void => {
-    res.redirect(`${process.env.CLIENT_URL!}/error`);
+    // res.redirect(`${process.env.CLIENT_URL!}/error`);
+    res.status(403).json({ message: 'failed login' });
   };
 
   register = async (req: Request, res: Response, next: NextFunction) => {
-    this.validator.validate(req.body);
     const userExists: boolean = await this.dao.exists(req.body);
     if (userExists) {
-      throw new UserExistsException('User Already Exists');
+      next(new UserExistsException('User Already Exists'));
     }
-    const newUser = await this.dao.create(req.body);
+    let user = req.body;
+    user.password = await this.hasher.hash(req.body.password);
+    const newUser = await this.dao.create(user);
     req.login(newUser, (err) => {
       if (err) {
         return next(err);
       }
-      console.log(req.session);
       res.status(StatusCode.ok).json(newUser);
     });
   };
 
   logout(req: Request, res: Response): void {
     req.logout();
-    res.redirect(process.env.CLIENT_URL!);
+    res.sendStatus(StatusCode.ok);
   }
 }

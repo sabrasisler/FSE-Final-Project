@@ -15,8 +15,10 @@
   "license": "ISC",
   "dependencies": {
     "@microsoft/tsdoc": "^0.13.2",
+    "@types/bcrypt": "^5.0.0",
     "@types/express-validator": "^3.0.0",
     "@types/passport-local": "^1.0.34",
+    "bcrypt": "^5.0.1",
     "clean-jsdoc-theme": "^3.3.3",
     "cookie-session": "^2.0.0",
     "cors": "^2.8.5",

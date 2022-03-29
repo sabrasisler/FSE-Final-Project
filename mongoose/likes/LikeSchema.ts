@@ -42,15 +42,30 @@ LikeSchema.index(
  * Check if users exist before creating like.
  */
 LikeSchema.pre('save', async function (next): Promise<void> {
-  const existingUser: IUser | null = await UserModel.findById(this.author);
+  const existingUser: IUser | null = await UserModel.findById(this.user);
   if (existingUser === null) {
     throw new MongooseException('User not found.');
   }
-  const existingTuit: ITuit | null = await TuitModel.findById(this.tuit);
+  const existingTuit: ITuit | null = await TuitModel.findOne({
+    _id: this.tuit,
+  });
   if (existingTuit === null) {
     throw new MongooseException('Tuit not found.');
   }
 });
+
+// LikeSchema.post('deleteOne', async function (next): Promise<void> {
+//   const tuitId = this.getQuery().tuit;
+//   const existingTuit: ITuit | null = await TuitModel.findOneAndUpdate(
+//     { _id: tuitId, stats: { likes: { $gt: 0 } } },
+//     { $inc: { 'stats.dislikes': 1, 'stats.likes': -1 } }
+//   );
+//   if (existingTuit === null) {
+//     throw new MongooseException(
+//       'Unable to update tuit stats after unlike: Tuit not found.'
+//     );
+//   }
+// });
 
 formatJSON(LikeSchema);
 export default LikeSchema;

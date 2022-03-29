@@ -6,11 +6,12 @@ import { TuitDaoErrors } from './TuitDaoErrors';
 import IUser from '../../models/users/IUser';
 import Tuit from '../../models/tuits/Tuit';
 import DaoNullException from '../../errors/DaoNullException';
+import IDao from '../shared/IDao';
 
 /**
  * DAO database CRUD operations for the tuit resource. Takes the injected dependencies of a {@link Model<ITuit>} ORM model and an {@link IErrorHandler} error handler.
  */
-export default class TuitDao implements ITuitDao {
+export default class TuitDao implements IDao<ITuit> {
   private readonly tuitModel: Model<ITuit>;
   private readonly userModel: Model<IUser>;
   private readonly errorHandler: IErrorHandler;
@@ -36,7 +37,8 @@ export default class TuitDao implements ITuitDao {
    * @param {string} userId the id of the user.
    * @returns an array of all tuits by the user id, with author user populated
    */
-  findByUser = async (userId: string): Promise<ITuit[]> => {
+
+  findByField = async (userId: string): Promise<ITuit[]> => {
     try {
       const tuits = await this.tuitModel
         .find({ author: userId })

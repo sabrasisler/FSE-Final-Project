@@ -6,23 +6,36 @@ import HttpResponse from '../shared/HttpResponse';
 import IControllerRoute from '../shared/IControllerRoute';
 import { Express, Router } from 'express';
 import { adaptRequest } from '../shared/adaptRequest';
+import IDao from '../../daos/shared/IDao';
+import ITuit from '../../models/tuits/ITuit';
+import { isAuthenticated } from '../auth/isAuthenticated';
+import { validateTuit } from '../middleware/validateTuit';
+import { validateResults } from '../middleware/validateResults';
+import AuthException from '../auth/AuthException';
+import { okResponse, unauthorizedResponse } from '../shared/createResponse';
 
 /**
  * Handles CRUD requests and responses for the Tuit resource.  Implements {@link ITuitController}.
  */
 export default class TuitController implements ITuitController {
-  private readonly tuitDao: ITuitDao;
+  private readonly tuitDao: IDao<ITuit>;
   /**
    * Constructs the controller by calling the super abstract, setting the dao, and configuring the endpoint paths.
    * @param tuitDao a tuit dao that implements {@link ITuitDao}
    */
-  public constructor(path: string, app: Express, dao: ITuitDao) {
+  public constructor(path: string, app: Express, dao: IDao<ITuit>) {
     this.tuitDao = dao;
     const router: Router = Router();
+    router.use(isAuthenticated);
     router.get('/tuits', adaptRequest(this.findAll));
     router.get('/tuits/:tuitId', adaptRequest(this.findById));
-    router.get('/users/:userId/tuit', adaptRequest(this.findByUser));
-    router.post('/users/:userId/tuits', adaptRequest(this.create));
+    router.get('/users/:userId/tuits', adaptRequest(this.findByUser));
+    router.post(
+      '/users/:userId/tuits',
+      validateTuit,
+      validateResults,
+      adaptRequest(this.create)
+    );
     router.put('/tuits/:tuitId', adaptRequest(this.update));
     router.delete('/tuits/:tuitId', adaptRequest(this.delete));
     app.use(path, router);
@@ -35,7 +48,7 @@ export default class TuitController implements ITuitController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   findByUser = async (req: HttpRequest): Promise<HttpResponse> => {
-    return { body: await this.tuitDao.findByUser(req.params.userId) };
+    return { body: await this.tuitDao.findByField(req.user.id) };
   };
 
   /**
@@ -63,8 +76,8 @@ export default class TuitController implements ITuitController {
   create = async (req: HttpRequest): Promise<HttpResponse> => {
     return {
       body: await this.tuitDao.create({
-        ...req.body,
-        author: req.params.userId,
+        tuit: req.body.tuit,
+        author: req.user.id,
       }),
     };
   };
@@ -75,7 +88,13 @@ export default class TuitController implements ITuitController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   update = async (req: HttpRequest): Promise<HttpResponse> => {
-    return { body: await this.tuitDao.update(req.params.tuitId, req.body) };
+    const tuit: any = {
+      id: req.body.id,
+      tuit: req.body.tuit,
+    };
+    return {
+      body: await this.tuitDao.update(req.params.tuitId, tuit),
+    };
   };
 
   /**
@@ -84,6 +103,11 @@ export default class TuitController implements ITuitController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   delete = async (req: HttpRequest): Promise<HttpResponse> => {
-    return { body: await this.tuitDao.delete(req.params.tuitId) };
+    const tuit: any = await this.tuitDao.findById(req.params.tuitId);
+    if (req.user.id !== tuit.author.id) {
+      throw new AuthException('User not authorized to delete tuit.');
+    }
+    const deletedCount = this.tuitDao.delete(req.params.tuitId);
+    return okResponse(deletedCount);
   };
 }

@@ -9,6 +9,6 @@ export enum TuitDaoErrors {
   DB_ERROR_EXISTS = 'Database error checking if tuit exists.',
   TUIT_NOT_FOUND = 'No matching tuit(s) found',
   DB_ERROR_FINDING_TUITS = 'DB error finding tuit(s)',
-  DB_ERROR_UPDATING_TUIT = 'DB updating tuit.',
-  DB_ERROR_DELETING_TUIT = 'DB deleting tuit.',
+  DB_ERROR_UPDATING_TUIT = 'DB error updating tuit.',
+  DB_ERROR_DELETING_TUIT = 'DB error deleting tuit.',
 }
