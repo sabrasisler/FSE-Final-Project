@@ -20,7 +20,7 @@ const mockDbTuits = [
   { ...mockTuits[0], author: { _id: mockAuthor._id } },
   { ...mockTuits[1], author: { _id: mockAuthor._id } },
 ];
-const tuitDao: ITuitDao = new TuitDao(
+const tuitDao: IDao<ITuit> = new TuitDao(
   TuitModel,
   UserModel,
   new DaoErrorHandler()
@@ -61,7 +61,7 @@ describe('TuitDao', () => {
 
   test('findByUser(): a valid user with 2 tuits', async () => {
     const userId: string = mockAuthor._id;
-    const dbTuits: ITuit[] = await tuitDao.findByUser(userId);
+    const dbTuits: ITuit[] = await tuitDao.findByField(userId);
     expect(dbTuits.length).toBe(2);
     for (const dbTuit of dbTuits) {
       expect(dbTuit).toMatchObject(userId);
