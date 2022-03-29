@@ -16,3 +16,4 @@ build
 node_modules
 coverage
 out
+package-lock.json
