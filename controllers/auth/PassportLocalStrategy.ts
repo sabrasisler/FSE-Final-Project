@@ -41,7 +41,11 @@ export default class PassportLocalStrategy implements IPassportStrategy {
             databaseUser.password = '*******';
             return done(null, databaseUser);
           } catch (err) {
-            return done(err);
+            return done(
+              new UnauthorizedException(
+                'Login error: Username/email or password not found.'
+              )
+            );
           }
         }
       )
