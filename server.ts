@@ -21,7 +21,7 @@ handleUncaughtException();
 app.use(
   cors({
     credentials: true,
-    origin: process.env.CLIENT_URL!,
+    origin: process.env.CLIENT_URL,
     methods: 'GET, POST, PUT, DELETE',
     preflightContinue: true,
   })
