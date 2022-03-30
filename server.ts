@@ -16,6 +16,11 @@ configGlobalMiddleware(app);
 createControllers(app);
 app.use(handleCentralError);
 handleUncaughtException();
+
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1); // trust first proxy
+}
+
 app.listen(process.env.PORT! || 4000, () => {
   console.log(`Up and running on port ${process.env.PORT! || 4000}`);
 });

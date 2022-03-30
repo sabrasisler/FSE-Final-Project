@@ -32,26 +32,30 @@ export default class LikeController implements ILikeController {
     this.likeDao = likeDao;
     this.tuitDao = tuitDao;
     const router = Router();
-    router.use(isAuthenticated);
     router.get(
       '/users/:userId/likes',
+      isAuthenticated,
       adaptRequest(this.findAllTuitsLikedByUser)
     );
     router.get(
       '/users/:userId/dislikes',
+      isAuthenticated,
       adaptRequest(this.findAllTuitsDislikedByUser)
     );
     router.get(
       '/tuits/:tuitId/likes',
+      isAuthenticated,
       adaptRequest(this.findAllUsersByTuitLike)
     );
     router.post(
       '/users/:userId/tuits/:tuitId/likes',
+      isAuthenticated,
 
       adaptRequest(this.userLikesTuit)
     );
     router.post(
       '/users/:userId/tuits/:tuitId/dislikes',
+      isAuthenticated,
       adaptRequest(this.userDislikesTuit)
     );
     app.use(path, router);

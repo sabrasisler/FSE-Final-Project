@@ -26,18 +26,23 @@ export default class TuitController implements ITuitController {
   public constructor(path: string, app: Express, dao: IDao<ITuit>) {
     this.tuitDao = dao;
     const router: Router = Router();
-    router.use(isAuthenticated);
-    router.get('/tuits', adaptRequest(this.findAll));
-    router.get('/tuits/:tuitId', adaptRequest(this.findById));
-    router.get('/users/:userId/tuits', adaptRequest(this.findByUser));
+    // router.use(isAuthenticated);
+    router.get('/tuits', isAuthenticated, adaptRequest(this.findAll));
+    router.get('/tuits/:tuitId', isAuthenticated, adaptRequest(this.findById));
+    router.get(
+      '/users/:userId/tuits',
+      isAuthenticated,
+      adaptRequest(this.findByUser)
+    );
     router.post(
       '/users/:userId/tuits',
+      isAuthenticated,
       validateTuit,
       validateResults,
       adaptRequest(this.create)
     );
-    router.put('/tuits/:tuitId', adaptRequest(this.update));
-    router.delete('/tuits/:tuitId', adaptRequest(this.delete));
+    router.put('/tuits/:tuitId', isAuthenticated, adaptRequest(this.update));
+    router.delete('/tuits/:tuitId', isAuthenticated, adaptRequest(this.delete));
     app.use(path, router);
     Object.freeze(this); // Make this object immutable.
   }
