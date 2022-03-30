@@ -3,12 +3,11 @@ import express from 'express';
 import configGlobalMiddleware from './config/createGlobalMiddleware';
 import createControllers from './config/createControllers';
 import configDatabase from './config/configDatabase';
-import cors from 'cors';
+
 import {
   handleCentralError,
   handleUncaughtException,
 } from './errors/handleCentralError';
-import { Socket } from 'net';
 
 dotenv.config();
 const app = express();
