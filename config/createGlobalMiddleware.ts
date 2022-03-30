@@ -4,13 +4,6 @@ import cookieSession from 'cookie-session';
 import cors from 'cors';
 
 const createGlobalMiddleware = (app: Express) => {
-  const session = {
-    secret: process.env.SESSION_SECRET,
-    cookie: {},
-    resave: false,
-    saveUninitialized: false,
-  };
-
   app.use(express.json());
   app.use(
     cors({
@@ -23,9 +16,9 @@ const createGlobalMiddleware = (app: Express) => {
   app.use(
     cookieSession({
       name: 'session',
-      keys: process.env.SESSION_KEYS!.split(', '),
+      keys: [process.env.SESSION_KEYS!],
       maxAge: 24 * 60 * 60 * 100,
-      secure: process.env.NODE_ENV == 'PRODUCTION' ? true : false,
+      secure: false,
     })
   );
   app.use(passport.initialize());
