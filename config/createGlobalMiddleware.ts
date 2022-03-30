@@ -13,8 +13,15 @@ const createGlobalMiddleware = (app: Express) => {
   //         secure: process.env.NODE_ENV === "production",
   //     }
   // }
-  // const globalMiddleware: Array<RequestHandler> = [
   app.use(express.json());
+  app.use(
+    cors({
+      credentials: true,
+      origin: process.env.CLIENT_URL!,
+      methods: 'GET, POST, PUT, DELETE',
+      preflightContinue: true,
+    })
+  );
   app.use(
     cookieSession({
       name: 'session',
@@ -24,17 +31,6 @@ const createGlobalMiddleware = (app: Express) => {
   );
   app.use(passport.initialize());
   app.use(passport.session());
-  // cors({
-  //   credentials: true,
-  //   origin: process.env.CLIENT_URL!,
-  //   methods: 'GET, POST, PUT, DELETE',
-  //   preflightContinue: true,
-  // }),
-  // ];
-
-  // for (const middleware of globalMiddleware) {
-  //   app.use(middleware);
-  // }
 };
 
 export default createGlobalMiddleware;

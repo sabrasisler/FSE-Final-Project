@@ -13,24 +13,15 @@ import { Socket } from 'net';
 dotenv.config();
 const app = express();
 
-app.use(
-  cors({
-    credentials: true,
-    origin: process.env.CLIENT_URL!,
-    // methods: 'GET, POST, PUT, DELETE',
-    // preflightContinue: true,
-  })
-);
-
-if (process.env.NODE_ENV! === 'PRODUCTION') {
-  app.set('trust proxy', 1); // trust first proxy
-}
-
 configDatabase(process.env.MONGO_URL!);
 configGlobalMiddleware(app);
 createControllers(app);
 app.use(handleCentralError);
 handleUncaughtException();
+
+if (process.env.NODE_ENV! === 'PRODUCTION') {
+  app.set('trust proxy', 1); // trust first proxy
+}
 
 app.listen(process.env.PORT! || 4000, () => {
   console.log(`Up and running on port ${process.env.PORT! || 4000}`);
