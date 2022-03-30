@@ -21,13 +21,13 @@ handleUncaughtException();
 app.use(
   cors({
     credentials: true,
-    origin: process.env.CLIENT_URL,
+    origin: process.env.CLIENT_URL!,
     // methods: 'GET, POST, PUT, DELETE',
     // preflightContinue: true,
   })
 );
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV! === 'production') {
   app.set('trust proxy', 1); // trust first proxy
 }
 
