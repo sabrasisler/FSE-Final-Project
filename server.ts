@@ -27,7 +27,7 @@ app.use(
   })
 );
 
-if (process.env.NODE_ENV! === 'production') {
+if (process.env.NODE_ENV! === 'PRODUCTION') {
   app.set('trust proxy', 1); // trust first proxy
 }
 
