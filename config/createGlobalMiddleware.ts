@@ -22,12 +22,12 @@ const createGlobalMiddleware = (app: Express) => {
     }),
     passport.initialize(),
     passport.session(),
-    cors({
-      credentials: true,
-      origin: process.env.CLIENT_URL!,
-      methods: 'GET, POST, PUT, DELETE',
-      preflightContinue: true,
-    }),
+    // cors({
+    //   credentials: true,
+    //   origin: process.env.CLIENT_URL!,
+    //   methods: 'GET, POST, PUT, DELETE',
+    //   preflightContinue: true,
+    // }),
   ];
 
   for (const middleware of globalMiddleware) {
