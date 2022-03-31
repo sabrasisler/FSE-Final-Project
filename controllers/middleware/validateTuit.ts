@@ -8,5 +8,5 @@ export const validateTuit = [
     .isLength({ min: 2, max: 260 })
     .withMessage('Posts must be between 2 and 280 characters'),
 
-  param('userId').exists().trim().isString(),
+  param('userId').exists().withMessage('User id must be provided.').trim(),
 ];

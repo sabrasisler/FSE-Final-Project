@@ -13,6 +13,7 @@ import { validateTuit } from '../middleware/validateTuit';
 import { validateResults } from '../middleware/validateResults';
 import AuthException from '../auth/AuthException';
 import { okResponse, unauthorizedResponse } from '../shared/createResponse';
+import DaoDatabaseException from '../../errors/DaoDatabseException';
 
 /**
  * Handles CRUD requests and responses for the Tuit resource.  Implements {@link ITuitController}.
