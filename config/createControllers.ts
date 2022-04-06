@@ -14,6 +14,8 @@ import IGenericController from '../controllers/shared/IGenericController';
 import ITuitController from '../controllers/tuits/ITuitController';
 import TuitController from '../controllers/tuits/TuitController';
 import { UserController } from '../controllers/users/UserController';
+import NotificationController from '../controllers/notifications/NotificationController';
+
 import IUser from '../models/users/IUser';
 import IValidator from '../shared/IValidator';
 import UserValidator from '../models/users/UserValidator';
@@ -28,7 +30,6 @@ import {
 } from './createDaos';
 import PassportLocalStrategy from '../controllers/auth/PassportLocalStrategy';
 import BcryptHasher from '../controllers/auth/BcryptHasher';
-import NotificationController from '../controllers/notifications/NotificationController';
 
 let alreadyCreated = false;
 
