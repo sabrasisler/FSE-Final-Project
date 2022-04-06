@@ -6,6 +6,7 @@ import ILikeDao from '../daos/likes/ILikeDao';
 import { LikeDao } from '../daos/likes/LikeDao';
 import IMessageDao from '../daos/messages/IMessageDao';
 import MessageDao from '../daos/messages/MessageDao';
+import NotificationDao from '../daos/notifications/NotificationsDao';
 import IDao from '../daos/shared/IDao';
 import ITuitDao from '../daos/tuits/ITuitDao';
 import TuitDao from '../daos/tuits/TuitDao';
@@ -48,3 +49,5 @@ export const messageDao: IMessageDao = new MessageDao(
   ConversationModel,
   daoErrorHandler
 );
+
+export const notificationDao: NotificationDao = NotificationDao.getInstance();

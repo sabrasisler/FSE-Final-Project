@@ -24,9 +24,11 @@ import {
   likeDao,
   followDao,
   messageDao,
+  notificationDao
 } from './createDaos';
 import PassportLocalStrategy from '../controllers/auth/PassportLocalStrategy';
 import BcryptHasher from '../controllers/auth/BcryptHasher';
+import NotificationController from '../controllers/notifications/NotificationController';
 
 let alreadyCreated = false;
 
@@ -75,6 +77,9 @@ const createControllers = (app: Express): void => {
     app,
     messageDao
   );
+  const notificationController: NotificationController = new NotificationController('/api/v1',app,notificationDao);
+
+
   alreadyCreated = true;
 };
 
