@@ -30,4 +30,7 @@ export default class NotificationDao {
 
     createNotificationForUser = async (notificationType: string, uid: string): Promise<INotification> =>
         INotificationModel.create({userNotified: uid, type: notificationType, read:false});
+
+    updateReadNotification = async (nid: string) : Promise<any> => INotificationModel.findOneAndUpdate({_id: nid}, {read:true});
+
 }
