@@ -28,17 +28,14 @@ import NotificationDao from '../../daos/notifications/NotificationsDao';
       const router = Router();
       router.get(
         '/notifications',
-        isAuthenticated,
         adaptRequest(this.findAllNotifications)
       );
       router.get(
         '/users/:userId/notifications',
-        isAuthenticated,
         adaptRequest(this.findNotificationsForUser)
       );
       router.post(
         '/users/:userId/notifications',
-        isAuthenticated,
         adaptRequest(this.createNotificationForUser)
       );
       app.use(path, router);
@@ -47,7 +44,7 @@ import NotificationDao from '../../daos/notifications/NotificationsDao';
 
 
     createNotificationForUser = async (req: HttpRequest): Promise<HttpResponse> => {
-      const userId = req.user.id;
+      const userId = req.params.userId;
       const type = req.body.type;
 
       // new like
@@ -58,7 +55,7 @@ import NotificationDao from '../../daos/notifications/NotificationsDao';
 
     findNotificationsForUser = async (req: HttpRequest): Promise<HttpResponse> => {
       const notifications: INotification[] = await this.notificationDao.findAllNotificationsForUser(
-        req.user.id
+        req.params.id
       );
       return okResponse(notifications);
     };
