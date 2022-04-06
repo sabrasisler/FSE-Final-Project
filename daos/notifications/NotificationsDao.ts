@@ -28,6 +28,6 @@ export default class NotificationDao {
         .populate("userNotified")
         .exec();
 
-    createNotification = async (notificationType: string, uid: string): Promise<INotification> =>
+    createNotificationForUser = async (notificationType: string, uid: string): Promise<INotification> =>
         INotificationModel.create({userNotified: uid, type: notificationType, read:false});
 }
