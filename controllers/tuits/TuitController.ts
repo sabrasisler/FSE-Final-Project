@@ -54,7 +54,13 @@ export default class TuitController implements ITuitController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   findByUser = async (req: HttpRequest): Promise<HttpResponse> => {
-    return { body: await this.tuitDao.findByField(req.user.id) };
+    console.log(req.params.userId);
+
+    if (req.params.userId === 'me') {
+      return { body: await this.tuitDao.findByField(req.user.id) };
+    }
+
+    return { body: await this.tuitDao.findByField(req.params.userId) };
   };
 
   /**

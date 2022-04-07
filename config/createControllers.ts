@@ -61,7 +61,8 @@ const createControllers = (app: Express): void => {
   const followController: IFollowController = new FollowController(
     '/api/v1/users/',
     app,
-    followDao
+    followDao,
+    userDao
   );
   const likeController: ILikeController = new LikeController(
     '/api/v1/',
