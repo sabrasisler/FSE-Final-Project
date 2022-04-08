@@ -6,19 +6,28 @@ import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
 import { Express, Router } from 'express';
 import { adaptRequest } from '../shared/adaptRequest';
+import { Server } from 'socket.io';
+import ChatSocketService from '../../services/ChatSocketService';
 
 /**
  * Represents an implementation of an {@link IMessageController}
  */
 export default class MessageController implements IMessageController {
   private readonly messageDao: IMessageDao;
+  private readonly chatSocketService: ChatSocketService;
 
   /**
    * Constructs the message controller with a message dao dependency that implements {@link IMessageDao}.
    * @param messageDao the message dao
    */
-  public constructor(path: string, app: Express, messageDao: IMessageDao) {
+  public constructor(
+    path: string,
+    app: Express,
+    messageDao: IMessageDao,
+    chatService: ChatSocketService
+  ) {
     this.messageDao = messageDao;
+    this.chatSocketService = chatService;
     const router: Router = Router();
     router.get(
       '/:userId/messages',
@@ -68,13 +77,23 @@ export default class MessageController implements IMessageController {
    * @param {HttpRequest} req the request data containing client data
    * @returns {HttpResponse} the response data to be sent to the client
    */
-  createMessage = async (req: HttpRequest): Promise<HttpResponse> => {
+  createMessage = async (req: HttpRequest): Promise<any> => {
+    let conversationId = req.body.conversation;
+    if (conversationId === 'new') {
+      const newConversation: HttpResponse = await this.createConversation(
+        req.body
+      );
+      conversationId = newConversation.body.id;
+    }
     const message: IMessage = {
       ...req.body,
+      conversation: conversationId,
     };
-    return {
-      body: await this.messageDao.createMessage(req.params.userId, message),
-    };
+    const newMessage = await this.messageDao.createMessage(
+      req.params.userId,
+      message
+    );
+    this.chatSocketService.listenOnConversation(conversationId);
   };
   /**
    * Processes request and response of finding all messages associated with a user and a conversation. Calls the message dao to find such messages using the user and conversation ids. Sends back an array of messages back to the client.

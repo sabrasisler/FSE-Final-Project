@@ -27,6 +27,8 @@ import {
 } from './createDaos';
 import PassportLocalStrategy from '../controllers/auth/PassportLocalStrategy';
 import BcryptHasher from '../controllers/auth/BcryptHasher';
+import { Server } from 'socket.io';
+import ChatSocketService from '../services/ChatSocketService';
 
 let alreadyCreated = false;
 
@@ -37,7 +39,7 @@ const passportAuthStrategies: Array<IPassPortStrategy> = [
   new PassportLocalStrategy(hasher),
 ];
 
-const createControllers = (app: Express): void => {
+const createControllers = (app: Express, io: Server): void => {
   if (alreadyCreated) {
     return;
   }
@@ -69,11 +71,12 @@ const createControllers = (app: Express): void => {
     likeDao,
     tuitDao
   );
-
+  const chatService = new ChatSocketService(io);
   const messageController: IMessageController = new MessageController(
     '/api/v1/users',
     app,
-    messageDao
+    messageDao,
+    chatService
   );
   alreadyCreated = true;
 };
