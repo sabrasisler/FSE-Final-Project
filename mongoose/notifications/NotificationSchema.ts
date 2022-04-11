@@ -17,7 +17,9 @@ import { formatJSON } from '../util/formatJSON';
 const NotificationSchema = new mongoose.Schema<INotification>(
   {
     type: { type: String, enum: NotificationType, required: true},
+    notificationString: {type: String},
     userNotified: { type: Schema.Types.ObjectId, ref: 'UserModel', required: true },
+    userActing: {type: Schema.Types.ObjectId, ref: 'UserModel', required: true},
     read: {type: Boolean}
   },
   {
