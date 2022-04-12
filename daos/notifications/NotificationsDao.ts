@@ -42,7 +42,7 @@ export default class NotificationDao {
     /**
      * Marks a notification as read.
      * @param nid 
-     * @returns status of the update
+     * @returns notification that has been updated
      */
     updateReadNotification = async (nid: string) : Promise<any> => INotificationModel.findOneAndUpdate({_id: nid}, {read:true});
 }

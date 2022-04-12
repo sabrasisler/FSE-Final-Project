@@ -15,10 +15,7 @@ import NotificationDao from '../../daos/notifications/NotificationsDao';
  export default class NotificationController {
     private readonly notificationDao: NotificationDao;
   
-    /** Constructs the like controller with an injected ILikeDao interface implementation. Defines the endpoint paths, middleware, method types, and handler methods associated with each endpoint.
-     *
-     * @param {ILikeDao} likeDao a like dao implementing the ILikeDao interface used to find resources in the database.
-     */
+
     constructor(
       path: string,
       app: Express,
@@ -38,7 +35,7 @@ import NotificationDao from '../../daos/notifications/NotificationsDao';
         '/users/:userId/notifications',
         adaptRequest(this.createNotificationForUser)
       );
-      router.post('users/:userId/notifications/:nid/read')
+      router.put('/users/:userId/notifications/:nid/read', adaptRequest(this.updateNotificationAsRead));
       app.use(path, router);
       Object.freeze(this); // Make this object immutable.
     }
@@ -70,11 +67,11 @@ import NotificationDao from '../../daos/notifications/NotificationsDao';
     };
 
   /**
-   * Processes updating a user by calling the dao with the user id and update body from the request object. Sends the updated user object back to the client, or passes any errors to the next function middleware.
+   * Processes of updating a notification to mark it as read by calling the dao with the notification id.
    * @param {HttpRequest} req the request data containing client data
    * @returns {HttpResponse} the response data to be sent to the client
    */
-   update = async (req: HttpRequest): Promise<HttpResponse> => {
+   updateNotificationAsRead = async (req: HttpRequest): Promise<HttpResponse> => {
     const nid = req.params.nid;
     const readNotification = await this.notificationDao.updateReadNotification(nid);
     return okResponse(readNotification);
