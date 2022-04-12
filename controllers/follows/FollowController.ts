@@ -54,13 +54,8 @@ export default class FollowController implements IFollowController {
     const followerUser: IUser = await this.userDao.findById(followerId);
     const followeeUser: IUser = await this.userDao.findById(followeeId);
 
-    followerUser.followerCount === undefined ? 
-      followerUser.followerCount = 1 : 
-      followerUser.followerCount += 1;
-
-    followeeUser.followeeCount === undefined ? 
-      followeeUser.followeeCount = 1 : 
-      followeeUser.followeeCount += 1;
+    followerUser.followerCount = (followerUser.followerCount || 0) + 1;
+    followeeUser.followeeCount = (followeeUser.followeeCount || 0) + 1;
 
     const updatedFollower: IUser = await this.userDao.update(followerId, followerUser);
     const updatedFollowee: IUser = await this.userDao.update(followeeId, followeeUser);
