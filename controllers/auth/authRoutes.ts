@@ -6,7 +6,7 @@ const CLIENT_URL = 'http://localhost:3000/';
 
 authRouter.get('/login/success', (req: Request, res: Response) => {
   console.log('SUCESS CALLED');
-  console.log(req.user);
+  // console.log(req.user);
   if (req.user) {
     res.status(200).json({
       success: true,

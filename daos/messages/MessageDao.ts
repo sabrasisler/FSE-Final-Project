@@ -134,7 +134,7 @@ export default class MessageDao implements IMessageDao {
   findLatestMessagesByUser = async (uid: string): Promise<IMessage[]> => {
     try {
       const userId = new mongoose.Types.ObjectId(uid);
-      console.log(userId);
+      // console.log(userId);
       /**
        * Aggregation piping steps to get latest message per conversation:
        * 1. Find all conversations where the user is a participant and where the user has not deleted/removed the conversation.

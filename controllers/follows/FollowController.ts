@@ -51,14 +51,9 @@ export default class FollowController implements IFollowController {
       followerId,
       followeeId
     );
-    const followerUser: IUser = await this.userDao.findById(followerId);
-    const followeeUser: IUser = await this.userDao.findById(followeeId);
 
-    followerUser.followerCount = (followerUser.followerCount || 0) + 1;
-    followeeUser.followeeCount = (followeeUser.followeeCount || 0) + 1;
-
-    const updatedFollower: IUser = await this.userDao.update(followerId, followerUser);
-    const updatedFollowee: IUser = await this.userDao.update(followeeId, followeeUser);
+    // When we create a new follow, update both user's follow counts
+    await this.updateFollowCount(followerId, followeeId, 1);
 
     return okResponse(newFollow);
   };
@@ -73,10 +68,32 @@ export default class FollowController implements IFollowController {
       req.params.userId,
       req.body.followeeId
     );
+
+    await this.updateFollowCount(req.params.userId, req.body.followeeId, -1);
+
     return {
       body: deletedFollow,
     };
   };
+
+  /**
+   * Helper function to increment or decrement the follow counts for relevant users
+   * 
+   * @param followerId  the followerUser's id
+   * @param followeeId the followeeUser's id
+   * @param increment 1 | -1, the value to change the follow count by
+   */
+  updateFollowCount = async (followerId: string, followeeId: string, increment: 1 | -1) => {
+    const followerUser: IUser = await this.userDao.findById(followerId);
+    const followeeUser: IUser = await this.userDao.findById(followeeId);
+
+    followerUser.followerCount = (followerUser.followerCount || 0) + increment;
+    followeeUser.followeeCount = (followeeUser.followeeCount || 0) + increment;
+
+    const updatedFollower: IUser = await this.userDao.update(followerId, followerUser);
+    const updatedFollowee: IUser = await this.userDao.update(followeeId, followeeUser);
+  };
+
   findAllFollowees = async (req: HttpRequest): Promise<HttpResponse> => {
     const allFollowees: IUser[] = await this.followDao.findAllFollowees(
       req.params.userId
@@ -122,4 +139,6 @@ export default class FollowController implements IFollowController {
     );
     return okResponse(updatedAcceptedFollow);
   };
+
+
 }
