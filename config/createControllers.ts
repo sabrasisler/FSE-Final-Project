@@ -14,6 +14,8 @@ import IGenericController from '../controllers/shared/IGenericController';
 import ITuitController from '../controllers/tuits/ITuitController';
 import TuitController from '../controllers/tuits/TuitController';
 import { UserController } from '../controllers/users/UserController';
+import NotificationController from '../controllers/notifications/NotificationController';
+
 import IUser from '../models/users/IUser';
 import IValidator from '../shared/IValidator';
 import UserValidator from '../models/users/UserValidator';
@@ -24,6 +26,7 @@ import {
   likeDao,
   followDao,
   messageDao,
+  notificationDao
 } from './createDaos';
 import PassportLocalStrategy from '../controllers/auth/PassportLocalStrategy';
 import BcryptHasher from '../controllers/auth/BcryptHasher';
@@ -76,6 +79,9 @@ const createControllers = (app: Express): void => {
     app,
     messageDao
   );
+  const notificationController: NotificationController = new NotificationController('/api/v1',app,notificationDao);
+
+
   alreadyCreated = true;
 };
 
