@@ -26,7 +26,7 @@ export default class PassportLocalStrategy implements IPassportStrategy {
         async (req, username, password, done) => {
           console.log(req.body);
           try {
-            let databaseUser: IUser = await userDao.findByField(
+            let databaseUser: IUser = await userDao.findOneByField(
               req.body.username
             );
             // const emailMatches = databaseUser.email === email;

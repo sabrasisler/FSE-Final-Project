@@ -73,10 +73,34 @@ export default class UserDao implements IDao<IUser> {
     }
   };
 
-  findByField = async (emailOrUsername: string): Promise<IUser> => {
+  findAllByField = async (nameOrUsername: string): Promise<IUser[]> => {
+    const pattern = RegExp(`${nameOrUsername}`, 'i');
+
+    try {
+      return await this.model.find().or([
+        { username: pattern },
+        { name: pattern },
+        // { firstName: pattern },
+        // { lastName: pattern },
+      ]);
+    } catch (err) {
+      throw this.errorHandler.handleError(
+        UserDaoErrors.DB_ERROR_FINDING_USER,
+        err
+      );
+    }
+  };
+
+  findOneByField = async (emailOrUsernameOrName: string): Promise<IUser> => {
     try {
       const dbUser: IUser | null = await this.model.findOne({
-        $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
+        $or: [
+          { email: emailOrUsernameOrName },
+          { username: emailOrUsernameOrName },
+          // { name: emailOrUsernameOrName },
+          // { firstName: emailOrUsernameOrName },
+          // { lastName: emailOrUsernameOrName },
+        ],
       });
       return this.errorHandler.objectOrNullException(
         dbUser,

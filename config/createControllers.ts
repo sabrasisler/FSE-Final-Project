@@ -14,9 +14,6 @@ import IGenericController from '../controllers/shared/IGenericController';
 import ITuitController from '../controllers/tuits/ITuitController';
 import TuitController from '../controllers/tuits/TuitController';
 import { UserController } from '../controllers/users/UserController';
-import IUser from '../models/users/IUser';
-import IValidator from '../shared/IValidator';
-import UserValidator from '../models/users/UserValidator';
 import {
   userDao,
   tuitDao,
@@ -24,11 +21,12 @@ import {
   likeDao,
   followDao,
   messageDao,
-} from './createDaos';
+} from './configDaos';
 import PassportLocalStrategy from '../controllers/auth/PassportLocalStrategy';
 import BcryptHasher from '../controllers/auth/BcryptHasher';
-import { Server } from 'socket.io';
-import ChatSocketService from '../services/ChatSocketService';
+import { handleCentralError } from '../errors/handleCentralError';
+import { app } from './configExpress';
+import { socketServer } from './configSocketIo';
 
 let alreadyCreated = false;
 
@@ -39,7 +37,7 @@ const passportAuthStrategies: Array<IPassPortStrategy> = [
   new PassportLocalStrategy(hasher),
 ];
 
-const createControllers = (app: Express, io: Server): void => {
+const createControllers = (): void => {
   if (alreadyCreated) {
     return;
   }
@@ -71,13 +69,13 @@ const createControllers = (app: Express, io: Server): void => {
     likeDao,
     tuitDao
   );
-  const chatService = new ChatSocketService(io);
   const messageController: IMessageController = new MessageController(
     '/api/v1/users',
     app,
     messageDao,
-    chatService
+    socketServer
   );
+  app.use(handleCentralError);
   alreadyCreated = true;
 };
 

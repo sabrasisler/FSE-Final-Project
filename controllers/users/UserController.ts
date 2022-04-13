@@ -27,6 +27,7 @@ export class UserController {
     this.dao = dao;
     const router = Router();
     router.get('/', adaptRequest(this.findAll));
+    router.post('/:nameOrUsername', adaptRequest(this.findAllByField));
     router.post('/', validateProfile, adaptRequest(this.create));
     router.get('/:userId', adaptRequest(this.findById));
     router.put(
@@ -59,6 +60,13 @@ export class UserController {
   findById = async (req: HttpRequest): Promise<HttpResponse> => {
     const dbUser: IUser = await this.dao.findById(req.params.userId);
     return okResponse(dbUser);
+  };
+
+  findAllByField = async (req: HttpRequest): Promise<HttpResponse> => {
+    const nameOrUsername = req.params.nameOrUsername;
+    const dbUsers: IUser[] = await this.dao.findAllByField(nameOrUsername);
+    // console.log('FOUND: ', dbUsers);
+    return okResponse(dbUsers);
   };
 
   /**

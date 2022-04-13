@@ -1,24 +1,14 @@
 import dotenv from 'dotenv';
-import express from 'express';
-import configGlobalMiddleware from './config/createGlobalMiddleware';
+import configGlobalMiddleware from './config/configGlobalMiddleware';
 import createControllers from './config/createControllers';
 import configDatabase from './config/configDatabase';
-import {
-  handleCentralError,
-  handleUncaughtException,
-} from './errors/handleCentralError';
-import { createServer, Server } from 'http';
-import { createSocket } from './config/configSocketIo';
+import { handleUncaughtException } from './errors/handleCentralError';
 
+import { app, httpServer } from './config/configExpress';
 dotenv.config();
-const app = express();
-const httpServer: Server = createServer(app);
 
-const socket = createSocket(httpServer);
 configDatabase(process.env.MONGO_URL!);
-configGlobalMiddleware(app);
-createControllers(app, socket);
-app.use(handleCentralError);
+createControllers();
 handleUncaughtException();
 
 if (process.env.NODE_ENV! === 'PRODUCTION') {

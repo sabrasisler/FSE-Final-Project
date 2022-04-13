@@ -31,6 +31,9 @@ export default class TuitDao implements IDao<ITuit> {
     this.errorHandler = errorHandler;
     Object.freeze(this); // Make this object immutable.
   }
+  findAllByField(field: string): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
 
   /**
    * Finds all tuits belonging by a user id in the database. Populates the tuit author in the document.
@@ -38,7 +41,7 @@ export default class TuitDao implements IDao<ITuit> {
    * @returns an array of all tuits by the user id, with author user populated
    */
 
-  findByField = async (userId: string): Promise<ITuit[]> => {
+  findOneByField = async (userId: string): Promise<ITuit[]> => {
     try {
       const tuits = await this.tuitModel
         .find({ author: userId })

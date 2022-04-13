@@ -7,14 +7,15 @@ import HttpResponse from '../shared/HttpResponse';
 import { Express, Router } from 'express';
 import { adaptRequest } from '../shared/adaptRequest';
 import { Server } from 'socket.io';
-import ChatSocketService from '../../services/ChatSocketService';
+import { okResponse } from '../shared/createResponse';
+import { addUserToSocketRoom } from '../../config/configSocketIo';
 
 /**
  * Represents an implementation of an {@link IMessageController}
  */
 export default class MessageController implements IMessageController {
   private readonly messageDao: IMessageDao;
-  private readonly chatSocketService: ChatSocketService;
+  private readonly socketServer: Server;
 
   /**
    * Constructs the message controller with a message dao dependency that implements {@link IMessageDao}.
@@ -24,13 +25,14 @@ export default class MessageController implements IMessageController {
     path: string,
     app: Express,
     messageDao: IMessageDao,
-    chatService: ChatSocketService
+    socketServer: Server
   ) {
     this.messageDao = messageDao;
-    this.chatSocketService = chatService;
+    this.socketServer = socketServer;
     const router: Router = Router();
     router.get(
       '/:userId/messages',
+      addUserToSocketRoom,
       adaptRequest(this.findLatestMessagesByUser)
     );
     router.get(
@@ -45,7 +47,10 @@ export default class MessageController implements IMessageController {
       '/:userId/conversations/',
       adaptRequest(this.createConversation)
     );
-    router.post('/:userId/messages/', adaptRequest(this.createMessage));
+    router.post(
+      '/:userId/conversations/:conversationId/messages/',
+      adaptRequest(this.createMessage)
+    );
     router.delete(
       '/:userId/messages/:messageId',
       adaptRequest(this.deleteMessage)
@@ -64,12 +69,7 @@ export default class MessageController implements IMessageController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   createConversation = async (req: HttpRequest): Promise<HttpResponse> => {
-    const conversation: IConversation = {
-      type: req.body.type,
-      createdBy: req.body.createdBy,
-      participants: req.body.participants,
-    };
-    return { body: await this.messageDao.createConversation(conversation) };
+    return { body: await this.messageDao.createConversation(req.body) };
   };
 
   /**
@@ -78,22 +78,22 @@ export default class MessageController implements IMessageController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   createMessage = async (req: HttpRequest): Promise<any> => {
-    let conversationId = req.body.conversation;
-    if (conversationId === 'new') {
-      const newConversation: HttpResponse = await this.createConversation(
-        req.body
-      );
-      conversationId = newConversation.body.id;
-    }
     const message: IMessage = {
-      ...req.body,
-      conversation: conversationId,
+      sender: req.params.userId,
+      conversation: req.params.conversationId,
+      message: req.body.message,
     };
-    const newMessage = await this.messageDao.createMessage(
+    const newMessage: any = await this.messageDao.createMessage(
       req.params.userId,
       message
     );
-    this.chatSocketService.listenOnConversation(conversationId);
+    // Emit to client sockets
+    const recipients = newMessage.conversation.participants;
+    for (const recipient of recipients) {
+      console.log(`Emitting to ${recipient}`);
+      this.socketServer.to(recipient.toString()).emit('NEW_MESSAGE', message);
+    }
+    return okResponse(newMessage);
   };
   /**
    * Processes request and response of finding all messages associated with a user and a conversation. Calls the message dao to find such messages using the user and conversation ids. Sends back an array of messages back to the client.
@@ -103,12 +103,11 @@ export default class MessageController implements IMessageController {
   findAllMessagesByConversation = async (
     req: HttpRequest
   ): Promise<HttpResponse> => {
-    return {
-      body: await this.messageDao.findAllMessagesByConversation(
-        req.params.userId,
-        req.params.conversationId
-      ),
-    };
+    const messages = await this.messageDao.findAllMessagesByConversation(
+      req.params.userId,
+      req.params.conversationId
+    );
+    return okResponse(messages);
   };
 
   /**
@@ -119,9 +118,11 @@ export default class MessageController implements IMessageController {
   findLatestMessagesByUser = async (
     req: HttpRequest
   ): Promise<HttpResponse> => {
-    return {
-      body: await this.messageDao.findLatestMessagesByUser(req.params.userId),
-    };
+    const userId = req.user.id || req.params.userId;
+    const messages: any = await this.messageDao.findLatestMessagesByUser(
+      userId
+    );
+    return okResponse(messages);
   };
 
   findAllMessagesSentByUser = async (
