@@ -20,7 +20,7 @@ export default class NotificationDao {
      * @returns an array of all notifications for the user id
      */
     findAllNotificationsForUser = async (userId: string): Promise<INotification[]> => 
-            INotificationModel.find({ userNotified: userId }).populate("userNotified").exec();
+            INotificationModel.find({ userNotified: userId }).populate("userNotified").populate("userActing").exec();
 
     /**
      * Finds all the notifications in the database
@@ -29,6 +29,7 @@ export default class NotificationDao {
     findAllNotifications = async (): Promise<INotification[]> => 
         INotificationModel.find()
         .populate("userNotified")
+        .populate("userActing")
         .exec();
     /**
      * Creates a neotification for a given user

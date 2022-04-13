@@ -54,7 +54,7 @@ import NotificationDao from '../../daos/notifications/NotificationsDao';
 
     findNotificationsForUser = async (req: HttpRequest): Promise<HttpResponse> => {
       const notifications: INotification[] = await this.notificationDao.findAllNotificationsForUser(
-        req.params.id
+        req.params.userId
       );
       return okResponse(notifications);
     };
