@@ -32,7 +32,7 @@ export default class NotificationDao {
         .populate("userActing")
         .exec();
     /**
-     * Creates a neotification for a given user
+     * Creates a notification for a given user
      * @param notificationType string representing the content of notification such as a message, like, or follow
      * @param uid string represents the user id of the user being notified
      * @param uid2 string represents the user id of the user that did the action
