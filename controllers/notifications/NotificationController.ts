@@ -12,10 +12,16 @@ import INotification from "../../models/notifications/INotification";
 import NotificationDao from '../../daos/notifications/NotificationsDao';
 
 
+/**
+ * Represents the implementation for handling the notifications resource api.
+ */
 export default class NotificationController {
   private readonly notificationDao: NotificationDao;
 
-
+  /** Constructs the notifications controller with an notificationDao implementation. Defines the endpoint paths, middleware, method types, and handler methods associated with each endpoint.
+   *
+   * @param {NotificationDao} notification a notification dao used to find notifications resources in the database.
+   */
   constructor(
     path: string,
     app: Express,
@@ -46,7 +52,12 @@ export default class NotificationController {
     Object.freeze(this); // Make this object immutable.
   }
 
-
+  /**
+   * Processes the endpoint request of creating a notification by calling the notificationDao, 
+   * which will create and return a notification document. 
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
+   */
   createNotificationForUser = async (req: HttpRequest): Promise<HttpResponse> => {
     const userNotifiedId = req.params.userId;
     const type = req.body.type;
@@ -58,6 +69,12 @@ export default class NotificationController {
     }
   };
 
+  /**
+   * Processes the request of finding all all notifications for a particular user. 
+   * Calls the notifications dao to find the tuits, and returns the notifications back to the client.
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
+   */
   findNotificationsForUser = async (req: HttpRequest): Promise<HttpResponse> => {
     const notifications: INotification[] = await this.notificationDao.findAllNotificationsForUser(
       req.params.userId
@@ -65,6 +82,12 @@ export default class NotificationController {
     return okResponse(notifications);
   };
 
+   /**
+   * Processes the request of finding all all notifications in the database (used for testing). 
+   * Calls the notifications dao to find the tuits, and returns the notifications back to the client.
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
+   */
   findAllNotifications = async (
     req: HttpRequest
   ): Promise<HttpResponse> => {
