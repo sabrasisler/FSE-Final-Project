@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { httpServer } from './configExpress';
-import { Request, Response, NextFunction, response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
 dotenv.config();
 
@@ -23,29 +23,6 @@ const createServer = () => {
 };
 
 export const socketServer = createServer();
-
-// const onConnect = (action: Function, payload: any) => {
-//   return socketServer.on('connect', (socket) => {
-//     action(socket, payload);
-//   });
-// };
-// const addUserToSocketRoom = (socket: Socket) => {
-//   socket.on('JOIN_ROOM', (userId) => {
-//     socket.join(userId);
-//     console.log(`Room created for socket: ${socket.id}. User ${userId}`);
-//   });
-// };
-
-// export const addSessionUserToSocketRoom = (sessionUserId: string) => {
-//   socketServer.once('connect', (socket) => {
-//     socket.on('JOIN_ROOM', () => {
-//       socket.join(sessionUserId);
-//       console.log(
-//         `Room created for socket: ${socket.id}. User ${sessionUserId}`
-//       );
-//     });
-//   });
-// };
 
 export const addUserToSocketRoom = async (
   req: Request,

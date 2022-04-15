@@ -51,16 +51,18 @@ export default class MessageDao implements IMessageDao {
     }
     const conversationId: string = conversation.participants.sort().join('');
     try {
-      const convo = await this.conversationModel.findOneAndUpdate(
-        { cid: conversationId },
-        {
-          ...conversation,
-          cid: conversationId,
-          type,
-          participants,
-        },
-        { upsert: true, new: true }
-      );
+      const convo = await this.conversationModel
+        .findOneAndUpdate(
+          { cid: conversationId },
+          {
+            ...conversation,
+            cid: conversationId,
+            type,
+            participants,
+          },
+          { upsert: true, new: true }
+        )
+        .populate('participants');
       return await convo.populate('createdBy');
     } catch (err) {
       throw this.errorHandler.handleError(
@@ -105,6 +107,31 @@ export default class MessageDao implements IMessageDao {
     }
   };
 
+  findConversation = async (conversationId: string): Promise<IConversation> => {
+    // First, make sure user is a participant in the conversation for which they're trying to get all messages from.
+    try {
+      const existingConvo = await this.conversationModel
+        .findOne({
+          _id: conversationId,
+        })
+        .populate('participants');
+      this.errorHandler.objectOrNullException(
+        existingConvo,
+        MessageDaoErrors.INVALID_CONVERSATION
+      );
+
+      return this.errorHandler.objectOrNullException(
+        existingConvo,
+        MessageDaoErrors.NO_CONVERSATION_FOUND
+      );
+    } catch (err) {
+      throw this.errorHandler.handleError(
+        MessageDaoErrors.DB_ERROR_FINDING_CONVERSATION,
+        err
+      );
+    }
+  };
+
   /**
    * Find all messages for conversation for the specified user and conversation ids. Also check if user if indeed a participant in the conversation for security reasons.
    * @param {string} userId the id of the user requesting the messages who should be a participant in the conversation
@@ -133,6 +160,7 @@ export default class MessageDao implements IMessageDao {
           removeFor: { $nin: [userId] },
         })
         .populate('sender');
+
       this.errorHandler.objectOrNullException(
         allMessagesForConversation,
         MessageDaoErrors.NO_MATCHING_MESSAGES

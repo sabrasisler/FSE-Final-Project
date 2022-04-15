@@ -1,7 +1,6 @@
 import IMessageController from './IMessageController';
 import IMessageDao from '../../daos/messages/IMessageDao';
 import IMessage from '../../models/messages/IMessage';
-import IConversation from '../../models/messages/IConversation';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
 import { Express, Router } from 'express';
@@ -59,6 +58,10 @@ export default class MessageController implements IMessageController {
       '/:userId/conversations/:conversationId',
       adaptRequest(this.deleteConversation)
     );
+    router.get(
+      '/:userId/conversations/:conversationId',
+      adaptRequest(this.findConversation)
+    );
     app.use(path, router);
     Object.freeze(this); // Make this object immutable.
   }
@@ -70,6 +73,13 @@ export default class MessageController implements IMessageController {
    */
   createConversation = async (req: HttpRequest): Promise<HttpResponse> => {
     return { body: await this.messageDao.createConversation(req.body) };
+  };
+
+  findConversation = async (req: HttpRequest): Promise<HttpResponse> => {
+    const conversation = await this.messageDao.findConversation(
+      req.params.conversationId
+    );
+    return okResponse(conversation);
   };
 
   /**
@@ -90,7 +100,6 @@ export default class MessageController implements IMessageController {
     // Emit to client sockets
     const recipients = newMessage.conversation.participants;
     for (const recipient of recipients) {
-      console.log(`Emitting to ${recipient}`);
       this.socketServer.to(recipient.toString()).emit('NEW_MESSAGE', message);
     }
     return okResponse(newMessage);
