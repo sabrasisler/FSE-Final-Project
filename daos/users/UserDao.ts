@@ -91,7 +91,7 @@ export default class UserDao implements IDao<IUser> {
     }
   };
 
-  findOneByField = async (emailOrUsernameOrName: string): Promise<IUser> => {
+  findByField = async (emailOrUsernameOrName: string): Promise<IUser> => {
     try {
       const dbUser: IUser | null = await this.model.findOne({
         $or: [

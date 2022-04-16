@@ -61,7 +61,7 @@ describe('TuitDao', () => {
 
   test('findByUser(): a valid user with 2 tuits', async () => {
     const userId: string = mockAuthor._id;
-    const dbTuits: ITuit[] = await tuitDao.findOneByField(userId);
+    const dbTuits: ITuit[] = await tuitDao.findByField(userId);
     expect(dbTuits.length).toBe(2);
     for (const dbTuit of dbTuits) {
       expect(dbTuit).toMatchObject(userId);

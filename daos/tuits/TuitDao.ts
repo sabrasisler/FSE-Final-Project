@@ -41,7 +41,7 @@ export default class TuitDao implements IDao<ITuit> {
    * @returns an array of all tuits by the user id, with author user populated
    */
 
-  findOneByField = async (userId: string): Promise<ITuit[]> => {
+  findByField = async (userId: string): Promise<ITuit[]> => {
     try {
       const tuits = await this.tuitModel
         .find({ author: userId })

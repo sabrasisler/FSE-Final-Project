@@ -7,7 +7,7 @@ import { Express, Router } from 'express';
 import { adaptRequest } from '../shared/adaptRequest';
 import { Server } from 'socket.io';
 import { okResponse } from '../shared/createResponse';
-import { addUserToSocketRoom } from '../../config/configSocketIo';
+import { isAuthenticated } from '../auth/isAuthenticated';
 
 /**
  * Represents an implementation of an {@link IMessageController}
@@ -31,31 +31,39 @@ export default class MessageController implements IMessageController {
     const router: Router = Router();
     router.get(
       '/:userId/messages',
-      addUserToSocketRoom,
+      isAuthenticated,
       adaptRequest(this.findLatestMessagesByUser)
     );
     router.get(
       '/:userId/messages/sent',
+      isAuthenticated,
       adaptRequest(this.findAllMessagesSentByUser)
     );
     router.get(
       '/:userId/conversations/:conversationId/messages',
+      isAuthenticated,
       adaptRequest(this.findAllMessagesByConversation)
     );
     router.post(
       '/:userId/conversations/',
+      isAuthenticated,
       adaptRequest(this.createConversation)
     );
+
     router.post(
       '/:userId/conversations/:conversationId/messages/',
+      isAuthenticated,
       adaptRequest(this.createMessage)
     );
+
     router.delete(
       '/:userId/messages/:messageId',
+      isAuthenticated,
       adaptRequest(this.deleteMessage)
     );
     router.delete(
       '/:userId/conversations/:conversationId',
+      isAuthenticated,
       adaptRequest(this.deleteConversation)
     );
     router.get(

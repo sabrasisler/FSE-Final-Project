@@ -1,9 +1,6 @@
 import ITuitController from './ITuitController';
-import ITuitDao from '../../daos/tuits/ITuitDao';
-import { Methods } from '../shared/Methods';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
-import IControllerRoute from '../shared/IControllerRoute';
 import { Express, Router } from 'express';
 import { adaptRequest } from '../shared/adaptRequest';
 import IDao from '../../daos/shared/IDao';
@@ -12,8 +9,7 @@ import { isAuthenticated } from '../auth/isAuthenticated';
 import { validateTuit } from '../middleware/validateTuit';
 import { validateResults } from '../middleware/validateResults';
 import AuthException from '../auth/AuthException';
-import { okResponse, unauthorizedResponse } from '../shared/createResponse';
-import DaoDatabaseException from '../../errors/DaoDatabseException';
+import { okResponse } from '../shared/createResponse';
 
 /**
  * Handles CRUD requests and responses for the Tuit resource.  Implements {@link ITuitController}.
@@ -54,7 +50,11 @@ export default class TuitController implements ITuitController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   findByUser = async (req: HttpRequest): Promise<HttpResponse> => {
-    return { body: await this.tuitDao.findOneByField(req.user.id) };
+    if (req.params.userId === 'me') {
+      return { body: await this.tuitDao.findByField(req.user.id) };
+    }
+
+    return { body: await this.tuitDao.findByField(req.params.userId) };
   };
 
   /**

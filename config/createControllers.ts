@@ -14,6 +14,7 @@ import IGenericController from '../controllers/shared/IGenericController';
 import ITuitController from '../controllers/tuits/ITuitController';
 import TuitController from '../controllers/tuits/TuitController';
 import { UserController } from '../controllers/users/UserController';
+import NotificationController from '../controllers/notifications/NotificationController';
 import {
   userDao,
   tuitDao,
@@ -21,6 +22,7 @@ import {
   likeDao,
   followDao,
   messageDao,
+  notificationDao,
 } from './configDaos';
 import PassportLocalStrategy from '../controllers/auth/PassportLocalStrategy';
 import BcryptHasher from '../controllers/auth/BcryptHasher';
@@ -61,7 +63,8 @@ const createControllers = (): void => {
   const followController: IFollowController = new FollowController(
     '/api/v1/users/',
     app,
-    followDao
+    followDao,
+    userDao
   );
   const likeController: ILikeController = new LikeController(
     '/api/v1/',
@@ -75,6 +78,9 @@ const createControllers = (): void => {
     messageDao,
     socketServer
   );
+
+  const notificationController: NotificationController =
+    new NotificationController('/api/v1', app, notificationDao);
   app.use(handleCentralError);
   alreadyCreated = true;
 };

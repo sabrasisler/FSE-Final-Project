@@ -4,7 +4,7 @@
 export default interface IDao<T> {
   findAll(): Promise<T[]>;
   findById(field: string): Promise<T>;
-  findOneByField(field: string): Promise<any>;
+  findByField(field: string): Promise<any>;
   findAllByField(field: string): Promise<any>;
   exists(resource: T): Promise<boolean>;
   create(type: T): Promise<T>;
