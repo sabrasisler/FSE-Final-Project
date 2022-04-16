@@ -31,6 +31,9 @@ export default class TuitDao implements IDao<ITuit> {
     this.errorHandler = errorHandler;
     Object.freeze(this); // Make this object immutable.
   }
+  findAllByField(field: string): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
 
   /**
    * Finds all tuits belonging by a user id in the database. Populates the tuit author in the document.

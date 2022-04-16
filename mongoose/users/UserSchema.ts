@@ -3,6 +3,7 @@ import IUser from '../../models/users/IUser';
 import { AccountType } from '../../models/users/AccoutType';
 import { AccountStatus } from '../../models/users/AccountStatus';
 import { formatJSON } from '../util/formatJSON';
+import { formatUserJSON } from '../util/formatUserJSON';
 
 /**
  * Mongoose database schema for the user resource, based on an {@link IUser} interface.
@@ -51,4 +52,5 @@ const UserSchema = new mongoose.Schema<IUser>(
 );
 
 formatJSON(UserSchema);
+formatUserJSON(UserSchema);
 export default UserSchema;

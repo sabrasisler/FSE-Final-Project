@@ -5,6 +5,7 @@ import { AccountType } from './AccoutType';
  * User entity interface
  */
 export default interface IUser {
+  id?: string;
   username: string;
   password: string;
   name: string;

@@ -8,6 +8,7 @@ import HttpResponse from './HttpResponse';
 export default interface IGenericController {
   findAll(): Promise<HttpResponse>;
   findById(req: HttpRequest): Promise<HttpResponse>;
+  // findByField(req: HttpRequest): Promise<HttpResponse>;
   create(req: HttpRequest): Promise<HttpResponse>;
   update(req: HttpRequest): Promise<HttpResponse>;
   delete(req: HttpRequest): Promise<HttpResponse>;

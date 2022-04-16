@@ -3,6 +3,9 @@ import IDao from '../daos/shared/IDao';
 import { mockUser, mockUsers } from './mockUsers';
 
 export default class MockUserDao implements IDao<IUser> {
+  findAllByField(field: string): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
   findByField(field: string): Promise<any> {
     throw new Error('Method not implemented.');
   }

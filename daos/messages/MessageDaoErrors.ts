@@ -15,4 +15,5 @@ export enum MessageDaoErrors {
   NO_MESSAGE_FOUND = 'No message found.',
   NO_CONVERSATION_FOUND = 'No matching conversation found.',
   DB_ERROR_DELETING_CONVERSATION = 'Database error deleting conversation.',
+  DB_ERROR_FINDING_CONVERSATION = 'Database error finding conversation',
 }
