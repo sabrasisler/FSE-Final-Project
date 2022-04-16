@@ -6,6 +6,7 @@ import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
 import { Express, Router } from 'express';
 import { adaptRequest } from '../shared/adaptRequest';
+import { isAuthenticated } from '../auth/isAuthenticated';
 
 /**
  * Represents an implementation of an {@link IMessageController}
@@ -21,28 +22,28 @@ export default class MessageController implements IMessageController {
     this.messageDao = messageDao;
     const router: Router = Router();
     router.get(
-      '/:userId/messages',
+      '/:userId/messages', isAuthenticated,
       adaptRequest(this.findLatestMessagesByUser)
     );
     router.get(
-      '/:userId/messages/sent',
+      '/:userId/messages/sent', isAuthenticated,
       adaptRequest(this.findAllMessagesSentByUser)
     );
     router.get(
-      '/:userId/conversations/:conversationId/messages',
+      '/:userId/conversations/:conversationId/messages', isAuthenticated,
       adaptRequest(this.findAllMessagesByConversation)
     );
     router.post(
-      '/:userId/conversations/',
+      '/:userId/conversations/', isAuthenticated,
       adaptRequest(this.createConversation)
     );
-    router.post('/:userId/messages/', adaptRequest(this.createMessage));
+    router.post('/:userId/messages', isAuthenticated, adaptRequest(this.createMessage));
     router.delete(
-      '/:userId/messages/:messageId',
+      '/:userId/messages/:messageId', isAuthenticated,
       adaptRequest(this.deleteMessage)
     );
     router.delete(
-      '/:userId/conversations/:conversationId',
+      '/:userId/conversations/:conversationId', isAuthenticated,
       adaptRequest(this.deleteConversation)
     );
     app.use(path, router);
