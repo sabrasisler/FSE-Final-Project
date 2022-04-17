@@ -31,7 +31,7 @@ export default class MessageController implements IMessageController {
     const router: Router = Router();
     router.get(
       '/:userId/messages',
-      isAuthenticated,
+      // isAuthenticated,
       adaptRequest(this.findLatestMessagesByUser)
     );
     router.get(
@@ -135,7 +135,7 @@ export default class MessageController implements IMessageController {
   findLatestMessagesByUser = async (
     req: HttpRequest
   ): Promise<HttpResponse> => {
-    const userId = req.user.id || req.params.userId;
+    const userId = req.user.id;
     const messages: any = await this.messageDao.findLatestMessagesByUser(
       userId
     );
