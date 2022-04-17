@@ -17,7 +17,7 @@ import { formatJSON } from '../util/formatJSON';
 const ConversationSchema = new mongoose.Schema<IConversion>(
   {
     type: { type: String, enum: ConversationType, required: true },
-    cid: { type: String, unique: true, required: true },
+    cid: { type: String, unique: true, required: true, select: false },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'UserModel',

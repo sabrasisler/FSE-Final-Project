@@ -60,7 +60,8 @@ export default class PassportAuthController {
 
   getProfile = (req: Request, res: Response): void => {
     if (req.user) {
-      res.status(Code.ok).json(req.user);
+      const user: any = req.user;
+      res.status(Code.ok).json(user);
     } else {
       throw new UnauthorizedException(
         'Failed to get user session. Unauthorized.'

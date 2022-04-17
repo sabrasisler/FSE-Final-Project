@@ -1,6 +1,9 @@
 import ITuitController from './ITuitController';
+import ITuitDao from '../../daos/tuits/ITuitDao';
+import { Methods } from '../shared/Methods';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
+import IControllerRoute from '../shared/IControllerRoute';
 import { Express, Router } from 'express';
 import { adaptRequest } from '../shared/adaptRequest';
 import IDao from '../../daos/shared/IDao';
@@ -9,18 +12,28 @@ import { isAuthenticated } from '../auth/isAuthenticated';
 import { validateTuit } from '../middleware/validateTuit';
 import { validateResults } from '../middleware/validateResults';
 import AuthException from '../auth/AuthException';
-import { okResponse } from '../shared/createResponse';
+import { okResponse, unauthorizedResponse } from '../shared/createResponse';
+import DaoDatabaseException from '../../errors/DaoDatabseException';
+import { Server, Socket } from 'socket.io';
 
 /**
  * Handles CRUD requests and responses for the Tuit resource.  Implements {@link ITuitController}.
  */
 export default class TuitController implements ITuitController {
   private readonly tuitDao: IDao<ITuit>;
+  private readonly socket: Server;
+
   /**
    * Constructs the controller by calling the super abstract, setting the dao, and configuring the endpoint paths.
    * @param tuitDao a tuit dao that implements {@link ITuitDao}
    */
-  public constructor(path: string, app: Express, dao: IDao<ITuit>) {
+  public constructor(
+    path: string,
+    app: Express,
+    socket: Server,
+    dao: IDao<ITuit>
+  ) {
+    this.socket = socket;
     this.tuitDao = dao;
     const router: Router = Router();
     // router.use(isAuthenticated);
@@ -50,11 +63,7 @@ export default class TuitController implements ITuitController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   findByUser = async (req: HttpRequest): Promise<HttpResponse> => {
-    if (req.params.userId === 'me') {
-      return { body: await this.tuitDao.findByField(req.user.id) };
-    }
-
-    return { body: await this.tuitDao.findByField(req.params.userId) };
+    return { body: await this.tuitDao.findByField(req.user.id) };
   };
 
   /**
@@ -79,13 +88,11 @@ export default class TuitController implements ITuitController {
    * @param {HttpRequest} req the request data containing client data
    * @returns {HttpResponse} the response data to be sent to the client
    */
-  create = async (req: HttpRequest): Promise<HttpResponse> => {
-    return {
-      body: await this.tuitDao.create({
-        tuit: req.body.tuit,
-        author: req.user.id,
-      }),
-    };
+  create = async (req: HttpRequest): Promise<any> => {
+    const tuit = await this.tuitDao.create({
+      tuit: req.body.tuit,
+      author: req.user.id,
+    });
   };
 
   /**

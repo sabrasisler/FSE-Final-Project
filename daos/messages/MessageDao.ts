@@ -4,6 +4,7 @@ import IMessage from '../../models/messages/IMessage';
 import IErrorHandler from '../../errors/IErrorHandler';
 import IMessageDao from './IMessageDao';
 import { MessageDaoErrors } from './MessageDaoErrors';
+import { ConversationType } from '../../models/messages/ConversationType';
 
 /**
  * DAO database CRUD operations for the messages resources. Implements {@link IMessage}. Takes a {@link MessageModel}, {@link ConversationModel}, and {@link IErrorHandler} as injected dependencies.
@@ -38,12 +39,30 @@ export default class MessageDao implements IMessageDao {
   createConversation = async (
     conversation: IConversation
   ): Promise<IConversation> => {
+    let type: ConversationType;
+    if (conversation.participants.length > 1) {
+      type = ConversationType.Group;
+    } else {
+      type = ConversationType.Private;
+    }
+    let participants = conversation.participants;
+    if (!conversation.participants.includes(conversation.createdBy)) {
+      participants.push(conversation.createdBy);
+    }
     const conversationId: string = conversation.participants.sort().join('');
     try {
-      const convo = await this.conversationModel.create({
-        ...conversation,
-        cid: conversationId,
-      });
+      const convo = await this.conversationModel
+        .findOneAndUpdate(
+          { cid: conversationId },
+          {
+            ...conversation,
+            cid: conversationId,
+            type,
+            participants,
+          },
+          { upsert: true, new: true }
+        )
+        .populate('participants');
       return await convo.populate('createdBy');
     } catch (err) {
       throw this.errorHandler.handleError(
@@ -78,10 +97,36 @@ export default class MessageDao implements IMessageDao {
         sender,
         ...message,
       });
-      return await dbMessage.populate('sender');
+      await (await dbMessage.populate('sender')).populate('conversation');
+      return dbMessage;
     } catch (err) {
       throw this.errorHandler.handleError(
         MessageDaoErrors.DB_ERROR_CREATING_MESSAGE,
+        err
+      );
+    }
+  };
+
+  findConversation = async (conversationId: string): Promise<IConversation> => {
+    // First, make sure user is a participant in the conversation for which they're trying to get all messages from.
+    try {
+      const existingConvo = await this.conversationModel
+        .findOne({
+          _id: conversationId,
+        })
+        .populate('participants');
+      this.errorHandler.objectOrNullException(
+        existingConvo,
+        MessageDaoErrors.INVALID_CONVERSATION
+      );
+
+      return this.errorHandler.objectOrNullException(
+        existingConvo,
+        MessageDaoErrors.NO_CONVERSATION_FOUND
+      );
+    } catch (err) {
+      throw this.errorHandler.handleError(
+        MessageDaoErrors.DB_ERROR_FINDING_CONVERSATION,
         err
       );
     }
@@ -109,10 +154,13 @@ export default class MessageDao implements IMessageDao {
         MessageDaoErrors.INVALID_CONVERSATION
       );
       // Retrieve all the messages for the conversation.
-      const allMessagesForConversation = await this.messageModel.find({
-        conversation: conversationId,
-        removeFor: { $nin: [userId] },
-      });
+      const allMessagesForConversation = await this.messageModel
+        .find({
+          conversation: conversationId,
+          removeFor: { $nin: [userId] },
+        })
+        .populate('sender');
+
       this.errorHandler.objectOrNullException(
         allMessagesForConversation,
         MessageDaoErrors.NO_MATCHING_MESSAGES
@@ -134,19 +182,16 @@ export default class MessageDao implements IMessageDao {
   findLatestMessagesByUser = async (uid: string): Promise<IMessage[]> => {
     try {
       const userId = new mongoose.Types.ObjectId(uid);
+<<<<<<< HEAD
       // console.log(userId);
+=======
+
+>>>>>>> ac106ca94f85269027c84205e88453bff4ca5ef8
       /**
        * Aggregation piping steps to get latest message per conversation:
-       * 1. Find all conversations where the user is a participant and where the user has not deleted/removed the conversation.
-       * 2. With the found conversations, lookup all the messages that match the conversation id.
-       * 3. Match the messages where the user has not removed/deleted the message.
-       * 4. Do an unwind to split the conversation documents by each message belonging to the conversation. This will help with sorting by message in next step.
-       * 5. Sort each conversation document in descending order by date of message creation.
-       * 6. Group each result into a newly formatted document that only contains the message id, sender, and message content. This helps us get rid of all conversation document meta data we do not need.
-       * 7. Look up the sender to populate the message object with all info of the sender.
-       * 8. Do an unwind to split the documents by sender.
        */
       const convo = await this.conversationModel.aggregate([
+        // Find all conversations where the user is a participant and where the user has not deleted/removed the conversation.
         {
           $match: {
             participants: {
@@ -157,6 +202,7 @@ export default class MessageDao implements IMessageDao {
             },
           },
         },
+        // With the found conversations, look up messages from message collection that match the conversation id.
         {
           $lookup: {
             from: 'messages',
@@ -165,6 +211,7 @@ export default class MessageDao implements IMessageDao {
             as: 'messages',
           },
         },
+        // Match the messages where the user has not removed/deleted the message.
         {
           $match: {
             removeFrom: {
@@ -172,27 +219,40 @@ export default class MessageDao implements IMessageDao {
             },
           },
         },
+        // Do an unwind to split the conversation documents by each message belonging to the conversation. This will help with sorting by message in next step.
+
         {
           $unwind: {
             path: '$messages',
           },
         },
+        // Sort each conversation document in descending order by date of message creation.
         {
           $sort: {
             'messages.createdAt': -1,
           },
         },
+        // Group each result into a newly formatted document that only contains the message id, sender, and message content. This helps us get rid of all conversation document meta data we do not need.
         {
           $group: {
             _id: '$_id',
+
             latestMessage: {
               $first: '$messages.message',
+            },
+            latestMessageId: {
+              $first: '$messages._id',
             },
             sender: {
               $first: '$messages.sender',
             },
+            createdAt: {
+              $first: '$messages.createdAt',
+            },
           },
         },
+
+        //  Look up the sender to populate the message object with all info of the sender.
         {
           $lookup: {
             from: 'users',
@@ -201,9 +261,26 @@ export default class MessageDao implements IMessageDao {
             as: 'sender',
           },
         },
+        // Do an unwind to split the documents by sender.
         {
           $unwind: {
             path: '$sender',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            message: '$latestMessage',
+            id: '$latestMessageId',
+            conversation: '$_id',
+            sender: '$sender',
+            createdAt: '$createdAt',
+          },
+        },
+        {
+          // Sort all results by descending order.
+          $sort: {
+            createdAt: -1,
           },
         },
       ]);
