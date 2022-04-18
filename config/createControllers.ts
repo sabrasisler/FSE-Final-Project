@@ -64,7 +64,8 @@ const createControllers = (): void => {
     '/api/v1/users/',
     app,
     followDao,
-    userDao
+    userDao,
+    notificationDao
   );
   const likeController: ILikeController = new LikeController(
     '/api/v1/',
