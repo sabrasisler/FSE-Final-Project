@@ -8,6 +8,7 @@ import { adaptRequest } from '../shared/adaptRequest';
 import { Server } from 'socket.io';
 import { okResponse } from '../shared/createResponse';
 import { isAuthenticated } from '../auth/isAuthenticated';
+import { addUserToSocketRoom } from '../../config/configSocketIo';
 
 /**
  * Represents an implementation of an {@link IMessageController}
@@ -31,7 +32,8 @@ export default class MessageController implements IMessageController {
     const router: Router = Router();
     router.get(
       '/:userId/messages',
-      // isAuthenticated,
+      isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.findLatestMessagesByUser)
     );
     router.get(
@@ -42,6 +44,7 @@ export default class MessageController implements IMessageController {
     router.get(
       '/:userId/conversations/:conversationId/messages',
       isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.findAllMessagesByConversation)
     );
     router.post(
