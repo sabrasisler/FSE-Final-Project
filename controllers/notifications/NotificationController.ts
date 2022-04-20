@@ -58,7 +58,9 @@ export default class NotificationController {
 
   /**
    * Processes the endpoint request of creating a notification by calling the notificationDao, 
-   * which will create and return a notification document. 
+   * which will create and return a notification document. Also emits a NEW_NOTIFICATION message
+   * to the recipient's socket server. This will allow their notifications page to be automatically
+   * updated.
    * @param {HttpRequest} req the request data containing client data
    * @returns {HttpResponse} the response data to be sent to the client
    */
@@ -72,7 +74,7 @@ export default class NotificationController {
     // Send a message to the socket listener for the notified user to recieve the new notification
     this.socketServer.to(userNotifiedId).emit('NEW_NOTIFICATION', notification);
 
-    // new like
+    // new notification
     return {
       body: notification
     }
