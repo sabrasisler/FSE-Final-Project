@@ -44,6 +44,11 @@ export default class NotificationController {
       isAuthenticated,
       adaptRequest(this.createNotificationForUser)
     );
+    router.get(
+      '/users/:userId/notifications/unread',      
+      isAuthenticated,
+      adaptRequest(this.findUnreadNotificationsForUser)
+    );
     router.put(
       '/notifications/:nid/read',
       isAuthenticated,
