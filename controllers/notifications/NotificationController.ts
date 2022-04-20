@@ -10,6 +10,7 @@ import { okResponse as okResponse } from '../shared/createResponse';
 import { isAuthenticated } from '../auth/isAuthenticated';
 import INotification from "../../models/notifications/INotification";
 import NotificationDao from '../../daos/notifications/NotificationsDao';
+import { Server } from 'socket.io';
 
 
 /**
@@ -17,6 +18,7 @@ import NotificationDao from '../../daos/notifications/NotificationsDao';
  */
 export default class NotificationController {
   private readonly notificationDao: NotificationDao;
+  private readonly socketServer: Server;
 
   /** Constructs the notifications controller with an notificationDao implementation. Defines the endpoint paths, middleware, method types, and handler methods associated with each endpoint.
    *
@@ -26,8 +28,10 @@ export default class NotificationController {
     path: string,
     app: Express,
     notificationDao: NotificationDao,
+    socketServer: Server
   ) {
     this.notificationDao = notificationDao;
+    this.socketServer = socketServer;
     const router = Router();
     router.get(
       '/notifications',
@@ -63,9 +67,14 @@ export default class NotificationController {
     const type = req.body.type;
     const userActing = req.body.userActing;
 
+    const notification = await this.notificationDao.createNotificationForUser(type, userNotifiedId, userActing);
+
+    // Send a message to the socket listener for the notified user to recieve the new notification
+    this.socketServer.to(userNotifiedId).emit('NEW_NOTIFICATION', notification);
+
     // new like
     return {
-      body: await this.notificationDao.createNotificationForUser(type, userNotifiedId, userActing)
+      body: notification
     }
   };
 
