@@ -53,7 +53,6 @@ export default class FollowController implements IFollowController {
     const followeeId: string = req.body.followeeId;
 
     const followNotification: Notification = await this.notificationDao.createNotificationForUser("FOLLOWS", followeeId, followerId);
-
     const newFollow: IFollow = await this.followDao.createFollow(
       followerId,
       followeeId
