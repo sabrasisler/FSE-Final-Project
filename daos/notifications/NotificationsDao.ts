@@ -14,8 +14,9 @@ export default class NotificationDao {
         return NotificationDao.notificationDao;
     }
     private constructor() {}
+
     /**
-     * Finds all notifications belonging to a user id in the database. Populates the userNotified.
+     * Finds all notifications belonging to a user id in the database. Populates the userNotified and userActing.
      * @param {string} userId the id of the user recieving notifications.
      * @returns an array of all notifications for the user id
      */
@@ -46,4 +47,19 @@ export default class NotificationDao {
      * @returns notification that has been updated
      */
     updateReadNotification = async (nid: string) : Promise<any> => INotificationModel.findOneAndUpdate({_id: nid}, {read:true});
+
+    /**
+     * Finds all unread notifications belonging to a user id in the database.
+     * @param {string} userId the id of the user recieving notifications.
+     * @returns an array of all unread notifications for the user id
+     */
+    findUnreadNotificationsForUser = async (userId: string): Promise<INotification[]> => 
+        INotificationModel.find({ userNotified: userId, read: false }).exec();
+
+    /**
+     * Deletes a notification
+     * @param nid id of the notification to be deleted
+     * @returns status of deleting
+     */
+    deleteNotification = async (nid: string) : Promise <any> => INotificationModel.deleteOne({id: nid})
 }
