@@ -202,6 +202,28 @@ export default class MessageDao implements IMessageDao {
             },
           },
         },
+        /**
+         * Populate the participants foreign key arrays by looking up the FKs in the user table/document. Filter the results with pipeline to only display necessary user info.
+         */
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'participants',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  name: 1,
+                  firstName: 1,
+                  lastName: 1,
+                  profilePhoto: 1,
+                },
+              },
+            ],
+            as: 'recipients',
+          },
+        },
         // With the found conversations, look up messages from message collection that match the conversation id.
         {
           $lookup: {
@@ -236,7 +258,9 @@ export default class MessageDao implements IMessageDao {
         {
           $group: {
             _id: '$_id',
-
+            recipients: {
+              $first: '$recipients',
+            },
             latestMessage: {
               $first: '$messages.message',
             },
@@ -258,6 +282,19 @@ export default class MessageDao implements IMessageDao {
             from: 'users',
             localField: 'sender',
             foreignField: '_id',
+            pipeline: [
+              // Filter results to only include relevant sender info.
+              {
+                $project: {
+                  _id: 0,
+                  id: '$_id',
+                  name: 1,
+                  firstName: 1,
+                  lastName: 1,
+                  profilePhoto: 1,
+                },
+              },
+            ],
             as: 'sender',
           },
         },
@@ -270,10 +307,11 @@ export default class MessageDao implements IMessageDao {
         {
           $project: {
             _id: 0,
-            message: '$latestMessage',
             id: '$latestMessageId',
-            conversation: '$_id',
+            message: '$latestMessage',
             sender: '$sender',
+            conversation: '$_id',
+            recipients: '$recipients',
             createdAt: '$createdAt',
           },
         },
