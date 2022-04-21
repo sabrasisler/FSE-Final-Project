@@ -75,9 +75,7 @@ export default class NotificationController {
     this.socketServer.to(userNotifiedId).emit('NEW_NOTIFICATION', notification);
 
     // new notification
-    return {
-      body: notification
-    }
+    return okResponse(notification);
   };
 
   /**
@@ -114,6 +112,10 @@ export default class NotificationController {
   updateNotificationAsRead = async (req: HttpRequest): Promise<HttpResponse> => {
     const nid = req.params.nid;
     const readNotification = await this.notificationDao.updateReadNotification(nid);
+
+    // Send a message to the socket listener for the notified user to recieve the new notification
+    this.socketServer.to(nid).emit('NEW_NOTIFICATION', readNotification);
+
     return okResponse(readNotification);
   };
 }
