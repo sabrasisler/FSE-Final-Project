@@ -11,7 +11,7 @@ import { isAuthenticated } from '../auth/isAuthenticated';
 import INotification from "../../models/notifications/INotification";
 import NotificationDao from '../../daos/notifications/NotificationsDao';
 import { Server } from 'socket.io';
-
+import { addUserToSocketRoom } from '../../config/configSocketIo';
 
 /**
  * Represents the implementation for handling the notifications resource api.
@@ -46,11 +46,13 @@ export default class NotificationController {
     router.post(
       '/users/:userId/notifications',
       isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.createNotificationForUser)
     );
     router.put(
       '/notifications/:nid/read',
       isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.updateNotificationAsRead));
     app.use(path, router);
     Object.freeze(this); // Make this object immutable.
