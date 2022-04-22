@@ -80,7 +80,12 @@ const createControllers = (): void => {
   );
 
   const notificationController: NotificationController =
-    new NotificationController('/api/v1', app, notificationDao);
+    new NotificationController(
+      '/api/v1',
+      app, 
+      notificationDao,
+      socketServer);
+      
   app.use(handleCentralError);
   alreadyCreated = true;
 };
