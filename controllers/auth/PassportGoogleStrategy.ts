@@ -29,7 +29,6 @@ export default class PassportGoogleStrategy implements IPassportStrategy {
           done: Function
         ) {
           try {
-            // console.log(profile);
             const user: IUser = {
               name: profile.displayName,
               password: undefined!,
@@ -96,7 +95,6 @@ export default class PassportGoogleStrategy implements IPassportStrategy {
 
     //         //Set user in request
     //         req.logIn(user, (error) => {
-    //           console.log('error?', error);
     //           if (error) {
     //             return next(
     //               new AuthException(
@@ -104,12 +102,10 @@ export default class PassportGoogleStrategy implements IPassportStrategy {
     //               )
     //             );
     //           }
-    //           console.log(req.user);
     //           return res.redirect(`${process.env.CLIENT_URL!}`);
     //           // next();
     //         });
     //         // req.user = user;
-    //         // console.log(user);
     //         // next();
     //       }
     //     )(req, res, next)

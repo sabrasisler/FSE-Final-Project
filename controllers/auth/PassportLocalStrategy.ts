@@ -24,7 +24,6 @@ export default class PassportLocalStrategy implements IPassportStrategy {
       new Strategy(
         { passReqToCallback: true },
         async (req, username, password, done) => {
-          // console.log(req.body);
           try {
             let databaseUser: IUser = await userDao.findByField(
               req.body.username
