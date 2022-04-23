@@ -71,6 +71,7 @@ export default class MessageController implements IMessageController {
     );
     router.get(
       '/:userId/conversations/:conversationId',
+      isAuthenticated,
       adaptRequest(this.findConversation)
     );
     app.use(path, router);

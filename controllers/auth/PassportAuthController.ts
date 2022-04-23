@@ -10,6 +10,7 @@ import UserExistsException from './UserExistsException';
 import IHasher from './IHasher';
 import { validateRegistration } from '../middleware/validateUser';
 import { validateResults } from '../middleware/validateResults';
+import { addUserToSocketRoom } from '../../config/configSocketIo';
 dotenv.config();
 
 export default class PassportAuthController {
@@ -28,16 +29,9 @@ export default class PassportAuthController {
 
     this.path = '/api/v1/auth';
     const router = Router();
-    router.get('/profile', this.getProfile);
+    router.get('/profile', addUserToSocketRoom, this.getProfile);
     router.get('/login/failed', this.failLogin);
     router.post('/logout', this.logout);
-    // router.post(
-    //   '/login',
-    //   passport.authenticate('local', {
-    //     failureRedirect: `${this.path}/login/failed`,
-    //   }),
-    //   this.getProfile
-    // );
     router.post(
       '/register',
       validateRegistration,
@@ -70,7 +64,6 @@ export default class PassportAuthController {
   };
 
   failLogin = (res: Response): void => {
-    // res.redirect(`${process.env.CLIENT_URL!}/error`);
     res.status(403).json({ message: 'failed login' });
   };
 
