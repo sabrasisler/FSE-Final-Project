@@ -48,9 +48,4 @@ export const handleUncaughtException = () => {
     console.log('Uncaught Exception: ', err);
     //TODO: Log error
   });
-
-  // process.on('unhandledRejection', (reason, promise) => {
-  //   console.log('Unhandled rejection at ', promise, `reason: ${reason}`);
-  //   process.exit(1);
-  // });
 };

@@ -71,7 +71,6 @@ describe('TuitDao', () => {
     const tuitToCreate: any = await createMockTuit('hello!');
 
     const foundTuit: any = await tuitDao.findById(tuitToCreate.id);
-    // console.log(foundTuit.author);
     expect(tuitToCreate.tuit).toStrictEqual(foundTuit.tuit);
     expect(tuitToCreate.author.id).toStrictEqual(foundTuit.author.id);
   });

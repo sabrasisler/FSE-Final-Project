@@ -49,7 +49,6 @@ export default class User implements IUser {
     profilePhoto: string;
     accountStatus?: AccountStatus.Active;
   }) {
-    // console.log('USER', data);
     this.validateUsername(data.username);
     this.validateName(data.name);
     this.validateEmail(data.email);
