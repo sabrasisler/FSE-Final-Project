@@ -52,7 +52,6 @@ export default class FollowController implements IFollowController {
     const followerId: string = req.params.userId;
     const followeeId: string = req.body.followeeId;
 
-    const followNotification: Notification = await this.notificationDao.createNotificationForUser("FOLLOWS", followeeId, followerId);
     const newFollow: IFollow = await this.followDao.createFollow(
       followerId,
       followeeId
@@ -60,6 +59,8 @@ export default class FollowController implements IFollowController {
 
     // When we create a new follow, update both user's follow counts
     await this.updateFollowCount(followerId, followeeId, 1);
+
+    const followNotification: Notification = await this.notificationDao.createNotificationForUser("FOLLOWS", followeeId, followerId);
 
     return okResponse(newFollow);
   };
