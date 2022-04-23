@@ -49,6 +49,11 @@ export default class NotificationController {
       addUserToSocketRoom,
       adaptRequest(this.createNotificationForUser)
     );
+    router.get(
+      '/users/:userId/notifications/unread',      
+      isAuthenticated,
+      adaptRequest(this.findUnreadNotificationsForUser)
+    );
     router.put(
       '/notifications/:nid/read',
       isAuthenticated,
@@ -82,7 +87,7 @@ export default class NotificationController {
 
   /**
    * Processes the request of finding all all notifications for a particular user. 
-   * Calls the notifications dao to find the tuits, and returns the notifications back to the client.
+   * Calls the notifications dao to find the notifications, and returns the notifications back to the client.
    * @param {HttpRequest} req the request data containing client data
    * @returns {HttpResponse} the response data to be sent to the client
    */
@@ -95,7 +100,7 @@ export default class NotificationController {
 
    /**
    * Processes the request of finding all all notifications in the database (used for testing). 
-   * Calls the notifications dao to find the tuits, and returns the notifications back to the client.
+   * Calls the notifications dao to find the notifications, and returns the notifications back to the client.
    * @param {HttpRequest} req the request data containing client data
    * @returns {HttpResponse} the response data to be sent to the client
    */
@@ -120,4 +125,29 @@ export default class NotificationController {
 
     return okResponse(readNotification);
   };
+
+  /**
+   * Processes the request of finding all unread notifications for a particular user. 
+   * Calls the notifications dao to find the unread notifications, and returns the unread notifications back to the client.
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
+   */
+  findUnreadNotificationsForUser = async (req: HttpRequest): Promise<HttpResponse> => {
+    const undreadNotifications: INotification[] = await this.notificationDao.findUnreadNotificationsForUser(
+      req.params.userId
+    );
+    return okResponse(undreadNotifications);
+  };
+
+  /**
+   * Processes the request of deleting a given notification. 
+   * @param {HttpRequest} req the request data containing client data
+   * @returns {HttpResponse} the response data to be sent to the client
+   */
+  deleteNotification = async (req: HttpRequest): Promise<HttpResponse> => {
+    const nid = req.params.nid;
+    const deleteStatus = await this.notificationDao.deleteNotification(nid);
+    return okResponse(deleteStatus);
+  };
+
 }

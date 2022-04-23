@@ -10,6 +10,8 @@ import IFollowController from './IFollowController';
 import { adaptRequest } from '../shared/adaptRequest';
 import { IUserDao } from '../../daos/users/IUserDao';
 import IDao from '../../daos/shared/IDao';
+import NotificationDao from '../../daos/notifications/NotificationsDao';
+import Notification from "../../models/notifications/INotification";
 import { isUndefined } from 'util';
 
 /**
@@ -18,14 +20,17 @@ import { isUndefined } from 'util';
 export default class FollowController implements IFollowController {
   private readonly followDao: IFollowDao;
   private readonly userDao: IDao<IUser>;
+  private readonly notificationDao: NotificationDao;
 
   /**
    * Constructs the controller with a follow DAO, and defines the endpoint path and routes.
    * @param {IFollowDao} followDao an implementation of a follow DAO
    */
-  public constructor(path: string, app: Express, followDao: IFollowDao, userDao: IDao<IUser>) {
+  public constructor(path: string, app: Express, followDao: IFollowDao, userDao: IDao<IUser>, notificationDao: NotificationDao) {
     this.followDao = followDao;
     this.userDao = userDao;
+    this.notificationDao = notificationDao;
+
     const router = Router();
     router.post('/:userId/follows', adaptRequest(this.createFollow));
     router.get('/:userId/followers', adaptRequest(this.findAllFollowers));
@@ -47,6 +52,7 @@ export default class FollowController implements IFollowController {
     const followerId: string = req.params.userId;
     const followeeId: string = req.body.followeeId;
 
+    const followNotification: Notification = await this.notificationDao.createNotificationForUser("FOLLOWS", followeeId, followerId);
     const newFollow: IFollow = await this.followDao.createFollow(
       followerId,
       followeeId
