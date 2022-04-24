@@ -48,7 +48,6 @@ export default class NotificationController {
     router.post(
       '/users/:userId/notifications',
       isAuthenticated,
-      addUserToSocketRoom,
       adaptRequest(this.createNotificationForUser)
     );
     router.get(
@@ -60,7 +59,6 @@ export default class NotificationController {
     router.put(
       '/notifications/:nid/read',
       isAuthenticated,
-      addUserToSocketRoom,
       adaptRequest(this.updateNotificationAsRead));
     app.use(path, router);
     Object.freeze(this); // Make this object immutable.
