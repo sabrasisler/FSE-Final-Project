@@ -9,6 +9,7 @@ import { isAuthenticated } from '../auth/isAuthenticated';
 import ITuit from '../../models/tuits/ITuit';
 import IDao from '../../daos/shared/IDao';
 import NotificationDao from '../../daos/notifications/NotificationsDao';
+import Notification from '../../models/notifications/INotification';
 
 /**
  * Represents the implementation of an ILikeController interface for handling the likes resource api.
@@ -83,11 +84,9 @@ export default class LikeController implements ILikeController {
     // new like
     let updatedTuit: ITuit = await this.likeDao.createLike(userId, tuitId);
 
-    console.log(req.params.tuitId);
+    // create the notification for the new like
+    let likeNotification: Notification = await this.notificationDao.createNotificationForUser("LIKES", updatedTuit.author.toString(), userId);
     
-    //let likeNotification: Notification = await this.notificationDao.createNotificationForUser("LIKES", updatedTuit.author.id, userId);
-    //let likeNotification: Notification = await this.notificationDao.createNotificationForUser("LIKES", authorIdOfLikedTuit, userIdLikingTuit);
-
     if (existingDislike) {
       // undo previous dislike
       updatedTuit = await this.likeDao.deleteDislike(userId, tuitId);
