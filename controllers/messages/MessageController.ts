@@ -115,8 +115,6 @@ export default class MessageController implements IMessageController {
       req.params.userId,
       message
     );
-
-    //const recipients: User = await this.messageDao.findConversation(req.params.conversationId);
     
     // Emit to client sockets
     const recipients = newMessage.conversation.participants;
@@ -126,7 +124,7 @@ export default class MessageController implements IMessageController {
     }
     return okResponse(newMessage);
   };
-  
+
   /**
    * Processes request and response of finding all messages associated with a user and a conversation. Calls the message dao to find such messages using the user and conversation ids. Sends back an array of messages back to the client.
    * @param {HttpRequest} req the request data containing client data
