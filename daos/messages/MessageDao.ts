@@ -59,6 +59,7 @@ export default class MessageDao implements IMessageDao {
             cid: conversationId,
             type,
             participants,
+            $pull: { removeFor: { $in: [conversation.createdBy] } },
           },
           { upsert: true, new: true }
         )
