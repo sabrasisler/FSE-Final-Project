@@ -10,7 +10,6 @@ import UserExistsException from './UserExistsException';
 import IHasher from './IHasher';
 import { validateRegistration } from '../middleware/validateUser';
 import { validateResults } from '../middleware/validateResults';
-import { addUserToSocketRoom } from '../../config/configSocketIo';
 dotenv.config();
 
 export default class PassportAuthController {
@@ -29,7 +28,7 @@ export default class PassportAuthController {
 
     this.path = '/api/v1/auth';
     const router = Router();
-    router.get('/profile', addUserToSocketRoom, this.getProfile);
+    router.get('/profile', this.getProfile);
     router.get('/login/failed', this.failLogin);
     router.post('/logout', this.logout);
     router.post(
