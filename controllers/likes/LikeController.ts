@@ -5,11 +5,10 @@ import ILikeController from './ILikeController';
 import { Express, Router } from 'express';
 import { adaptRequest } from '../shared/adaptRequest';
 import { okResponse as okResponse } from '../shared/createResponse';
-import ILike from '../../models/likes/ILike';
 import { isAuthenticated } from '../auth/isAuthenticated';
 import ITuit from '../../models/tuits/ITuit';
-import ITuitDao from '../../daos/tuits/ITuitDao';
 import IDao from '../../daos/shared/IDao';
+import NotificationDao from '../../daos/notifications/NotificationsDao';
 
 /**
  * Represents the implementation of an ILikeController interface for handling the likes resource api.
@@ -18,6 +17,7 @@ import IDao from '../../daos/shared/IDao';
 export default class LikeController implements ILikeController {
   private readonly likeDao: ILikeDao;
   private readonly tuitDao: IDao<ITuit>;
+  private readonly notificationDao: NotificationDao;
 
   /** Constructs the like controller with an injected ILikeDao interface implementation. Defines the endpoint paths, middleware, method types, and handler methods associated with each endpoint.
    *
@@ -27,10 +27,12 @@ export default class LikeController implements ILikeController {
     path: string,
     app: Express,
     likeDao: ILikeDao,
-    tuitDao: IDao<ITuit>
+    tuitDao: IDao<ITuit>,
+    notificationDao: NotificationDao
   ) {
     this.likeDao = likeDao;
     this.tuitDao = tuitDao;
+    this.notificationDao = notificationDao;
     const router = Router();
     router.get(
       '/users/:userId/likes',
@@ -71,6 +73,7 @@ export default class LikeController implements ILikeController {
     const tuitId = req.params.tuitId;
     const existingLike = await this.likeDao.findLike(userId, tuitId);
     const existingDislike = await this.likeDao.findDislike(userId, tuitId);
+    const userIdLikingTuit = req.user.id;
 
     if (existingLike) {
       //undo previous like
@@ -79,6 +82,11 @@ export default class LikeController implements ILikeController {
     }
     // new like
     let updatedTuit: ITuit = await this.likeDao.createLike(userId, tuitId);
+
+    console.log(req.params.tuitId);
+    
+    //let likeNotification: Notification = await this.notificationDao.createNotificationForUser("LIKES", updatedTuit.author.id, userId);
+    //let likeNotification: Notification = await this.notificationDao.createNotificationForUser("LIKES", authorIdOfLikedTuit, userIdLikingTuit);
 
     if (existingDislike) {
       // undo previous dislike
