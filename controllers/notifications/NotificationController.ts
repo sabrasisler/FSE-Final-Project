@@ -36,11 +36,13 @@ export default class NotificationController {
     router.get(
       '/notifications',
       isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.findAllNotifications)
     );
     router.get(
       '/users/:userId/notifications',
       isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.findNotificationsForUser)
     );
     router.post(
@@ -52,6 +54,7 @@ export default class NotificationController {
     router.get(
       '/users/:userId/notifications/unread',      
       isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.findUnreadNotificationsForUser)
     );
     router.put(
