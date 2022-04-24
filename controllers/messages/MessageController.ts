@@ -9,6 +9,8 @@ import { Server } from 'socket.io';
 import { okResponse } from '../shared/createResponse';
 import { isAuthenticated } from '../auth/isAuthenticated';
 import { addUserToSocketRoom } from '../../config/configSocketIo';
+import NotificationDao from '../../daos/notifications/NotificationsDao';
+import Notification from "../../models/notifications/INotification";
 
 /**
  * Represents an implementation of an {@link IMessageController}
@@ -16,6 +18,7 @@ import { addUserToSocketRoom } from '../../config/configSocketIo';
 export default class MessageController implements IMessageController {
   private readonly messageDao: IMessageDao;
   private readonly socketServer: Server;
+  private readonly notificationDao: NotificationDao;
 
   /**
    * Constructs the message controller with a message dao dependency that implements {@link IMessageDao}.
@@ -25,9 +28,11 @@ export default class MessageController implements IMessageController {
     path: string,
     app: Express,
     messageDao: IMessageDao,
+    notificationDao: NotificationDao,
     socketServer: Server
   ) {
     this.messageDao = messageDao;
+    this.notificationDao = notificationDao;
     this.socketServer = socketServer;
     const router: Router = Router();
     router.get(
@@ -104,17 +109,24 @@ export default class MessageController implements IMessageController {
       conversation: req.params.conversationId,
       message: req.body.message,
     };
+
+    console.log(req.body)
     const newMessage: any = await this.messageDao.createMessage(
       req.params.userId,
       message
     );
+
+    //const recipients: User = await this.messageDao.findConversation(req.params.conversationId);
+    
     // Emit to client sockets
     const recipients = newMessage.conversation.participants;
     for (const recipient of recipients) {
+      const newNotification: Notification = await this.notificationDao.createNotificationForUser("MESSAGES", recipient, req.params.userId,);
       this.socketServer.to(recipient.toString()).emit('NEW_MESSAGE', message);
     }
     return okResponse(newMessage);
   };
+  
   /**
    * Processes request and response of finding all messages associated with a user and a conversation. Calls the message dao to find such messages using the user and conversation ids. Sends back an array of messages back to the client.
    * @param {HttpRequest} req the request data containing client data

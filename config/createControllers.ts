@@ -77,6 +77,7 @@ const createControllers = (): void => {
     '/api/v1/users',
     app,
     messageDao,
+    notificationDao,
     socketServer
   );
 
