@@ -208,6 +208,11 @@ export default class MessageDao implements IMessageDao {
             foreignField: '_id',
             pipeline: [
               {
+                $match: {
+                  _id: { $ne: userId },
+                },
+              },
+              {
                 $project: {
                   _id: 1,
                   name: 1,
@@ -220,6 +225,7 @@ export default class MessageDao implements IMessageDao {
             as: 'recipients',
           },
         },
+
         // With the found conversations, look up messages from message collection that match the conversation id.
         {
           $lookup: {
