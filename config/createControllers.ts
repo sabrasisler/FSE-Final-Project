@@ -71,7 +71,8 @@ const createControllers = (): void => {
     '/api/v1/',
     app,
     likeDao,
-    tuitDao
+    tuitDao,
+    notificationDao
   );
   const messageController: IMessageController = new MessageController(
     '/api/v1/users',
