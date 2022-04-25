@@ -3,6 +3,7 @@ import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
 import ILikeController from './ILikeController';
 import { Express, Router } from 'express';
+import { Server } from 'socket.io';
 import { adaptRequest } from '../shared/adaptRequest';
 import { okResponse as okResponse } from '../shared/createResponse';
 import ILike from '../../models/likes/ILike';
@@ -18,6 +19,7 @@ import IDao from '../../daos/shared/IDao';
 export default class LikeController implements ILikeController {
   private readonly likeDao: ILikeDao;
   private readonly tuitDao: IDao<ITuit>;
+  private readonly socketServer: Server;
 
   /** Constructs the like controller with an injected ILikeDao interface implementation. Defines the endpoint paths, middleware, method types, and handler methods associated with each endpoint.
    *
@@ -27,10 +29,12 @@ export default class LikeController implements ILikeController {
     path: string,
     app: Express,
     likeDao: ILikeDao,
-    tuitDao: IDao<ITuit>
+    tuitDao: IDao<ITuit>,
+    socketServer: Server
   ) {
     this.likeDao = likeDao;
     this.tuitDao = tuitDao;
+    this.socketServer = socketServer;
     const router = Router();
     router.get(
       '/users/:userId/likes',
@@ -69,7 +73,7 @@ export default class LikeController implements ILikeController {
   userLikesTuit = async (req: HttpRequest): Promise<HttpResponse> => {
     const userId = req.user.id;
     const tuitId = req.params.tuitId;
-    const existingLike = await this.likeDao.findLike(userId, tuitId);
+    const existingLike: any = await this.likeDao.findLike(userId, tuitId);
     const existingDislike = await this.likeDao.findDislike(userId, tuitId);
 
     if (existingLike) {
@@ -85,6 +89,9 @@ export default class LikeController implements ILikeController {
       updatedTuit = await this.likeDao.deleteDislike(userId, tuitId);
     }
 
+    // Emit an update to the socket server that there's a new like notification
+    this.socketServer.to(existingLike.tuit.author.toString()).emit('NEW_NOTIFICATION', updatedTuit);
+    
     return okResponse(updatedTuit);
   };
   /**

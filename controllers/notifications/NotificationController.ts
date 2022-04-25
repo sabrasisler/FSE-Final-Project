@@ -79,9 +79,6 @@ export default class NotificationController {
 
     const notification = await this.notificationDao.createNotificationForUser(type, userNotifiedId, userActing);
 
-    // Send a message to the socket listener for the notified user to recieve the new notification
-    this.socketServer.to(userNotifiedId).emit('NEW_NOTIFICATION', notification);
-
     // new notification
     return okResponse(notification);
   };

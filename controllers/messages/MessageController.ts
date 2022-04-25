@@ -83,7 +83,12 @@ export default class MessageController implements IMessageController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   createConversation = async (req: HttpRequest): Promise<HttpResponse> => {
-    return { body: await this.messageDao.createConversation(req.body) };
+    // Send a message to the socket listener for the notified user to recieve the new notification
+    let message: HttpResponse = { body: await this.messageDao.createConversation(req.body) };
+    
+    let conversation: any = req.body;
+    
+    return message;
   };
 
   findConversation = async (req: HttpRequest): Promise<HttpResponse> => {
@@ -112,6 +117,7 @@ export default class MessageController implements IMessageController {
     const recipients = newMessage.conversation.participants;
     for (const recipient of recipients) {
       this.socketServer.to(recipient.toString()).emit('NEW_MESSAGE', message);
+      this.socketServer.to(recipient.toString()).emit('NEW_NOTIFICATION', message);
     }
     return okResponse(newMessage);
   };
