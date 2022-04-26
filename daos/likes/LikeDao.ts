@@ -42,11 +42,13 @@ export class LikeDao implements ILikeDao {
         user: userId,
         tuit: tuitId,
       });
-      const updatedTuit = await this.tuitModel.findOneAndUpdate(
-        { _id: tuitId },
-        { $inc: { 'stats.likes': 1 }, $addToSet: { likedBy: [userId] } },
-        { new: true }
-      );
+      const updatedTuit = await this.tuitModel
+        .findOneAndUpdate(
+          { _id: tuitId },
+          { $inc: { 'stats.likes': 1 }, $addToSet: { likedBy: [userId] } },
+          { new: true }
+        )
+        .populate('author');
       return this.errorHandler.objectOrNullException(
         updatedTuit,
         'Failed to update tuit stats after creating like'
@@ -62,11 +64,16 @@ export class LikeDao implements ILikeDao {
         user: userId,
         tuit: tuitId,
       });
-      const updatedTuit = await this.tuitModel.findOneAndUpdate(
-        { _id: tuitId },
-        { $inc: { 'stats.dislikes': 1 }, $addToSet: { dislikedBy: [userId] } },
-        { new: true }
-      );
+      const updatedTuit = await this.tuitModel
+        .findOneAndUpdate(
+          { _id: tuitId },
+          {
+            $inc: { 'stats.dislikes': 1 },
+            $addToSet: { dislikedBy: [userId] },
+          },
+          { new: true }
+        )
+        .populate('author');
       return this.errorHandler.objectOrNullException(
         updatedTuit,
         'Failed to update tuit stats after creating dislike'
@@ -101,11 +108,16 @@ export class LikeDao implements ILikeDao {
         { user: userId, tuit: tuitId },
         { new: true }
       );
-      const updatedTuit = await this.tuitModel.findOneAndUpdate(
-        { _id: tuitId, 'stats.likes': { $gt: 0 } },
-        { $inc: { 'stats.likes': -1 }, $pull: { likedBy: { $in: [userId] } } },
-        { new: true }
-      );
+      const updatedTuit = await this.tuitModel
+        .findOneAndUpdate(
+          { _id: tuitId, 'stats.likes': { $gt: 0 } },
+          {
+            $inc: { 'stats.likes': -1 },
+            $pull: { likedBy: { $in: [userId] } },
+          },
+          { new: true }
+        )
+        .populate('author');
       return this.errorHandler.objectOrNullException(
         updatedTuit,
         'Error updating tuit after deleting like: Tuit not found.'
@@ -121,14 +133,16 @@ export class LikeDao implements ILikeDao {
         { user: userId, tuit: tuitId },
         { new: true }
       );
-      const updatedTuit = await this.tuitModel.findOneAndUpdate(
-        { _id: tuitId, 'stats.dislikes': { $gt: 0 } },
-        {
-          $inc: { 'stats.dislikes': -1 },
-          $pull: { dislikedBy: { $in: [userId] } },
-        },
-        { new: true }
-      );
+      const updatedTuit = await this.tuitModel
+        .findOneAndUpdate(
+          { _id: tuitId, 'stats.dislikes': { $gt: 0 } },
+          {
+            $inc: { 'stats.dislikes': -1 },
+            $pull: { dislikedBy: { $in: [userId] } },
+          },
+          { new: true }
+        )
+        .populate('author');
       return this.errorHandler.objectOrNullException(
         updatedTuit,
         'Error updating tuit after deleting dislike: Tuit not found.'

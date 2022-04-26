@@ -65,7 +65,6 @@ export class UserController {
   findAllByField = async (req: HttpRequest): Promise<HttpResponse> => {
     const nameOrUsername = req.params.nameOrUsername;
     const dbUsers: IUser[] = await this.dao.findAllByField(nameOrUsername);
-    // console.log('FOUND: ', dbUsers);
     return okResponse(dbUsers);
   };
 

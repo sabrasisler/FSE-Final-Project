@@ -36,28 +36,29 @@ export default class NotificationController {
     router.get(
       '/notifications',
       isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.findAllNotifications)
     );
     router.get(
       '/users/:userId/notifications',
       isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.findNotificationsForUser)
     );
     router.post(
       '/users/:userId/notifications',
       isAuthenticated,
-      addUserToSocketRoom,
       adaptRequest(this.createNotificationForUser)
     );
     router.get(
       '/users/:userId/notifications/unread',      
       isAuthenticated,
+      addUserToSocketRoom,
       adaptRequest(this.findUnreadNotificationsForUser)
     );
     router.put(
       '/notifications/:nid/read',
       isAuthenticated,
-      addUserToSocketRoom,
       adaptRequest(this.updateNotificationAsRead));
     app.use(path, router);
     Object.freeze(this); // Make this object immutable.
@@ -77,9 +78,6 @@ export default class NotificationController {
     const userActing = req.body.userActing;
 
     const notification = await this.notificationDao.createNotificationForUser(type, userNotifiedId, userActing);
-
-    // Send a message to the socket listener for the notified user to recieve the new notification
-    this.socketServer.to(userNotifiedId).emit('NEW_NOTIFICATION', notification);
 
     // new notification
     return okResponse(notification);

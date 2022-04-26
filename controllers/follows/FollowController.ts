@@ -5,14 +5,12 @@ import { okResponse } from '../shared/createResponse';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
 import { Express, Router } from 'express';
-import { Methods } from '../shared/Methods';
 import IFollowController from './IFollowController';
 import { adaptRequest } from '../shared/adaptRequest';
-import { IUserDao } from '../../daos/users/IUserDao';
 import IDao from '../../daos/shared/IDao';
 import NotificationDao from '../../daos/notifications/NotificationsDao';
 import Notification from '../../models/notifications/INotification';
-import { isUndefined } from 'util';
+import { Server } from 'socket.io';
 import { isAuthenticated } from '../auth/isAuthenticated';
 
 /**
@@ -22,6 +20,7 @@ export default class FollowController implements IFollowController {
   private readonly followDao: IFollowDao;
   private readonly userDao: IDao<IUser>;
   private readonly notificationDao: NotificationDao;
+  private readonly socketServer: Server;
 
   /**
    * Constructs the controller with a follow DAO, and defines the endpoint path and routes.
@@ -32,11 +31,13 @@ export default class FollowController implements IFollowController {
     app: Express,
     followDao: IFollowDao,
     userDao: IDao<IUser>,
-    notificationDao: NotificationDao
+    notificationDao: NotificationDao,
+    socketServer: Server
   ) {
     this.followDao = followDao;
     this.userDao = userDao;
     this.notificationDao = notificationDao;
+    this.socketServer = socketServer;
 
     const router = Router();
     router.post(
@@ -93,6 +94,11 @@ export default class FollowController implements IFollowController {
 
     // When we create a new follow, update both user's follow counts
     await this.updateFollowCount(followerId, followeeId, 1);
+
+    // Emit a new update to the Socket server when a new follow notification is created
+    this.socketServer
+      .to(followeeId)
+      .emit('NEW_NOTIFICATION', followNotification);
 
     return okResponse(newFollow);
   };
