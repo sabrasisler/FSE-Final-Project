@@ -57,7 +57,6 @@ export default class LikeController implements ILikeController {
     router.post(
       '/users/:userId/tuits/:tuitId/likes',
       isAuthenticated,
-
       adaptRequest(this.userLikesTuit)
     );
     router.post(
@@ -76,9 +75,9 @@ export default class LikeController implements ILikeController {
   userLikesTuit = async (req: HttpRequest): Promise<HttpResponse> => {
     const userId = req.user.id;
     const tuitId = req.params.tuitId;
-    const existingLike: any = await this.likeDao.findLike(userId, tuitId);
+    const existingLike = await this.likeDao.findLike(userId, tuitId);
     const existingDislike = await this.likeDao.findDislike(userId, tuitId);
-    const userIdLikingTuit = req.user.id;
+    // const userIdLikingTuit = req.user.id;
 
     if (existingLike) {
       //undo previous like
@@ -97,7 +96,7 @@ export default class LikeController implements ILikeController {
     }
 
     // Emit an update to the socket server that there's a new like notification
-    this.socketServer.to(existingLike.tuit.author.toString()).emit('NEW_NOTIFICATION', updatedTuit);
+    this.socketServer.to(updatedTuit.author.toString()).emit('NEW_NOTIFICATION', updatedTuit);
     
     return okResponse(updatedTuit);
   };
