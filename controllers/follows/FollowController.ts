@@ -5,15 +5,13 @@ import { okResponse } from '../shared/createResponse';
 import HttpRequest from '../shared/HttpRequest';
 import HttpResponse from '../shared/HttpResponse';
 import { Express, Router } from 'express';
-import { Methods } from '../shared/Methods';
 import IFollowController from './IFollowController';
 import { adaptRequest } from '../shared/adaptRequest';
-import { IUserDao } from '../../daos/users/IUserDao';
 import IDao from '../../daos/shared/IDao';
 import NotificationDao from '../../daos/notifications/NotificationsDao';
-import Notification from "../../models/notifications/INotification";
-import { isUndefined } from 'util';
+import Notification from '../../models/notifications/INotification';
 import { Server } from 'socket.io';
+import { isAuthenticated } from '../auth/isAuthenticated';
 
 /**
  *  Controller that implements the path, routes, and methods for managing the  for the follows resource. Implements {@link IFollowController}. Takes {@link IFollow} DAO as dependency.
@@ -28,22 +26,49 @@ export default class FollowController implements IFollowController {
    * Constructs the controller with a follow DAO, and defines the endpoint path and routes.
    * @param {IFollowDao} followDao an implementation of a follow DAO
    */
-  public constructor(path: string, app: Express, followDao: IFollowDao, userDao: IDao<IUser>, notificationDao: NotificationDao, socketServer: Server) {
+  public constructor(
+    path: string,
+    app: Express,
+    followDao: IFollowDao,
+    userDao: IDao<IUser>,
+    notificationDao: NotificationDao,
+    socketServer: Server
+  ) {
     this.followDao = followDao;
     this.userDao = userDao;
     this.notificationDao = notificationDao;
     this.socketServer = socketServer;
 
     const router = Router();
-    router.post('/:userId/follows', adaptRequest(this.createFollow));
-    router.get('/:userId/followers', adaptRequest(this.findAllFollowers));
-    router.get('/:userId/followees', adaptRequest(this.findAllFollowees));
+    router.post(
+      '/:userId/follows',
+      isAuthenticated,
+      adaptRequest(this.createFollow)
+    );
+    router.get(
+      '/:userId/followers',
+      isAuthenticated,
+      adaptRequest(this.findAllFollowers)
+    );
+    router.get(
+      '/:userId/followees',
+      isAuthenticated,
+      adaptRequest(this.findAllFollowees)
+    );
     router.get(
       '/:userId/follows/pending',
       adaptRequest(this.findAllPendingFollows)
     );
-    router.get('/:userId/follows', adaptRequest(this.acceptFollow));
-    router.delete('/:userId/follows', adaptRequest(this.deleteFollow));
+    router.get(
+      '/:userId/follows',
+      isAuthenticated,
+      adaptRequest(this.acceptFollow)
+    );
+    router.delete(
+      '/:userId/follows',
+      isAuthenticated,
+      adaptRequest(this.deleteFollow)
+    );
     app.use(path, router);
   }
   /**
@@ -59,15 +84,21 @@ export default class FollowController implements IFollowController {
       followerId,
       followeeId
     );
-    
-    const followNotification: Notification = await this.notificationDao.createNotificationForUser("FOLLOWS", followeeId, followerId);
 
+    const followNotification: Notification =
+      await this.notificationDao.createNotificationForUser(
+        'FOLLOWS',
+        followeeId,
+        followerId
+      );
 
     // When we create a new follow, update both user's follow counts
     await this.updateFollowCount(followerId, followeeId, 1);
 
     // Emit a new update to the Socket server when a new follow notification is created
-    this.socketServer.to(followeeId).emit('NEW_NOTIFICATION', followNotification);
+    this.socketServer
+      .to(followeeId)
+      .emit('NEW_NOTIFICATION', followNotification);
 
     return okResponse(newFollow);
   };
@@ -92,20 +123,30 @@ export default class FollowController implements IFollowController {
 
   /**
    * Helper function to increment or decrement the follow counts for relevant users
-   * 
+   *
    * @param followerId  the followerUser's id
    * @param followeeId the followeeUser's id
    * @param increment 1 | -1, the value to change the follow count by
    */
-  updateFollowCount = async (followerId: string, followeeId: string, increment: 1 | -1) => {
+  updateFollowCount = async (
+    followerId: string,
+    followeeId: string,
+    increment: 1 | -1
+  ) => {
     const followerUser: IUser = await this.userDao.findById(followerId);
     const followeeUser: IUser = await this.userDao.findById(followeeId);
 
     followerUser.followerCount = (followerUser.followerCount || 0) + increment;
     followeeUser.followeeCount = (followeeUser.followeeCount || 0) + increment;
 
-    const updatedFollower: IUser = await this.userDao.update(followerId, followerUser);
-    const updatedFollowee: IUser = await this.userDao.update(followeeId, followeeUser);
+    const updatedFollower: IUser = await this.userDao.update(
+      followerId,
+      followerUser
+    );
+    const updatedFollowee: IUser = await this.userDao.update(
+      followeeId,
+      followeeUser
+    );
   };
 
   findAllFollowees = async (req: HttpRequest): Promise<HttpResponse> => {
@@ -153,6 +194,4 @@ export default class FollowController implements IFollowController {
     );
     return okResponse(updatedAcceptedFollow);
   };
-
-
 }

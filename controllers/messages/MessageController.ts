@@ -76,6 +76,7 @@ export default class MessageController implements IMessageController {
     );
     router.get(
       '/:userId/conversations/:conversationId',
+      isAuthenticated,
       adaptRequest(this.findConversation)
     );
     app.use(path, router);
@@ -105,14 +106,14 @@ export default class MessageController implements IMessageController {
    */
   createMessage = async (req: HttpRequest): Promise<any> => {
     const message: IMessage = {
-      sender: req.params.userId,
+      sender: req.user.id,
       conversation: req.params.conversationId,
       message: req.body.message,
     };
 
     console.log(req.body)
     const newMessage: any = await this.messageDao.createMessage(
-      req.params.userId,
+      req.user.id,
       message
     );
     
@@ -135,7 +136,7 @@ export default class MessageController implements IMessageController {
     req: HttpRequest
   ): Promise<HttpResponse> => {
     const messages = await this.messageDao.findAllMessagesByConversation(
-      req.params.userId,
+      req.user.id,
       req.params.conversationId
     );
     return okResponse(messages);
@@ -160,7 +161,7 @@ export default class MessageController implements IMessageController {
     req: HttpRequest
   ): Promise<HttpResponse> => {
     return {
-      body: await this.messageDao.findAllMessagesSentByUser(req.params.userId),
+      body: await this.messageDao.findAllMessagesSentByUser(req.user.id),
     };
   };
 
@@ -172,7 +173,7 @@ export default class MessageController implements IMessageController {
   deleteMessage = async (req: HttpRequest): Promise<HttpResponse> => {
     return {
       body: await this.messageDao.deleteMessage(
-        req.params.userId,
+        req.user.id,
         req.params.messageId
       ),
     };
@@ -186,7 +187,7 @@ export default class MessageController implements IMessageController {
   deleteConversation = async (req: HttpRequest): Promise<HttpResponse> => {
     return {
       body: await this.messageDao.deleteConversation(
-        req.params.userId,
+        req.user.id,
         req.params.conversationId
       ),
     };

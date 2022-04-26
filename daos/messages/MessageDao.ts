@@ -39,15 +39,15 @@ export default class MessageDao implements IMessageDao {
   createConversation = async (
     conversation: IConversation
   ): Promise<IConversation> => {
-    let type: ConversationType;
-    if (conversation.participants.length > 1) {
-      type = ConversationType.Group;
-    } else {
-      type = ConversationType.Private;
-    }
     let participants = conversation.participants;
     if (!conversation.participants.includes(conversation.createdBy)) {
       participants.push(conversation.createdBy);
+    }
+    let type: ConversationType;
+    if (conversation.participants.length > 2) {
+      type = ConversationType.Group;
+    } else {
+      type = ConversationType.Private;
     }
     const conversationId: string = conversation.participants.sort().join('');
     try {
@@ -59,6 +59,7 @@ export default class MessageDao implements IMessageDao {
             cid: conversationId,
             type,
             participants,
+            $pull: { removeFor: { $in: [conversation.createdBy] } },
           },
           { upsert: true, new: true }
         )
@@ -192,7 +193,7 @@ export default class MessageDao implements IMessageDao {
             participants: {
               $in: [userId],
             },
-            removeFrom: {
+            removeFor: {
               $nin: [userId],
             },
           },
@@ -207,6 +208,11 @@ export default class MessageDao implements IMessageDao {
             foreignField: '_id',
             pipeline: [
               {
+                $match: {
+                  _id: { $ne: userId },
+                },
+              },
+              {
                 $project: {
                   _id: 1,
                   name: 1,
@@ -219,6 +225,7 @@ export default class MessageDao implements IMessageDao {
             as: 'recipients',
           },
         },
+
         // With the found conversations, look up messages from message collection that match the conversation id.
         {
           $lookup: {
@@ -268,6 +275,9 @@ export default class MessageDao implements IMessageDao {
             createdAt: {
               $first: '$messages.createdAt',
             },
+            removeFor: {
+              $first: '$messages.removeFor',
+            },
           },
         },
 
@@ -306,6 +316,7 @@ export default class MessageDao implements IMessageDao {
             message: '$latestMessage',
             sender: '$sender',
             conversation: '$_id',
+            removeFor: '$removeFor',
             recipients: '$recipients',
             createdAt: '$createdAt',
           },
@@ -383,6 +394,14 @@ export default class MessageDao implements IMessageDao {
           $addToSet: { removeFor: userId },
         },
         { new: true }
+      );
+      await this.messageModel.updateMany(
+        {
+          conversation: conversationId,
+        },
+        {
+          $addToSet: { removeFor: userId },
+        }
       );
       return this.errorHandler.objectOrNullException(
         conversation,
