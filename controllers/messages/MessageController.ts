@@ -83,12 +83,7 @@ export default class MessageController implements IMessageController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   createConversation = async (req: HttpRequest): Promise<HttpResponse> => {
-    // Send a message to the socket listener for the notified user to recieve the new notification
-    let message: HttpResponse = { body: await this.messageDao.createConversation(req.body) };
-    
-    let conversation: any = req.body;
-    
-    return message;
+    return okResponse({ body: await this.messageDao.createConversation(req.body)});
   };
 
   findConversation = async (req: HttpRequest): Promise<HttpResponse> => {
