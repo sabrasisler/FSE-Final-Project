@@ -96,13 +96,14 @@ export default class LikeController implements ILikeController {
         userId
       );
 
+    // Emit an update to the socket server that there's a new like notification
+    this.socketServer
+      .to(updatedTuit.author.id)
+      .emit('NEW_NOTIFICATION', updatedTuit);
+
     if (existingDislike) {
       // undo previous dislike
       updatedTuit = await this.likeDao.deleteDislike(userId, tuitId);
-      // Emit an update to the socket server that there's a new like notification
-      this.socketServer
-        .to(existingLike.tuit.author.id)
-        .emit('NEW_NOTIFICATION', updatedTuit);
     }
 
     return okResponse(updatedTuit);
