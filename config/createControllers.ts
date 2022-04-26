@@ -65,14 +65,16 @@ const createControllers = (): void => {
     app,
     followDao,
     userDao,
-    notificationDao
+    notificationDao,
+    socketServer
   );
   const likeController: ILikeController = new LikeController(
     '/api/v1/',
     app,
     likeDao,
     tuitDao,
-    notificationDao
+    notificationDao,
+    socketServer
   );
   const messageController: IMessageController = new MessageController(
     '/api/v1/users',
