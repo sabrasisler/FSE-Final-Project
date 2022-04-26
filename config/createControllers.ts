@@ -73,12 +73,14 @@ const createControllers = (): void => {
     app,
     likeDao,
     tuitDao,
+    notificationDao,
     socketServer
   );
   const messageController: IMessageController = new MessageController(
     '/api/v1/users',
     app,
     messageDao,
+    notificationDao,
     socketServer
   );
 
