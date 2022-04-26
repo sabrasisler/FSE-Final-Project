@@ -95,7 +95,7 @@ export default class NotificationController {
     const notifications: INotification[] = await this.notificationDao.findAllNotificationsForUser(
       req.params.userId
     );
-    return okResponse(notifications);
+    return okResponse(notifications.reverse());
   };
 
    /**
