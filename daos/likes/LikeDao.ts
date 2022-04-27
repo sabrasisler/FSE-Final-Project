@@ -190,7 +190,7 @@ export class LikeDao implements ILikeDao {
     try {
       const likes: ILike[] = await this.likeModel
         .find({ user: userId })
-        .populate({ path: 'tuit' })
+        .populate({ path: 'tuit', populate: { path: 'author' } })
         .exec();
       const tuits: ITuit[] = [];
       likes.map((like) => {
@@ -211,7 +211,7 @@ export class LikeDao implements ILikeDao {
     try {
       const likes: ILike[] = await this.dislikeModel
         .find({ user: userId })
-        .populate({ path: 'tuit' })
+        .populate({ path: 'tuit', populate: { path: 'author' } })
         .exec();
       const tuits: ITuit[] = [];
       likes.map((like) => {
