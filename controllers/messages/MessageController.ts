@@ -10,7 +10,7 @@ import { okResponse } from '../shared/createResponse';
 import { isAuthenticated } from '../auth/isAuthenticated';
 import { addUserToSocketRoom } from '../../config/configSocketIo';
 import NotificationDao from '../../daos/notifications/NotificationsDao';
-import Notification from "../../models/notifications/INotification";
+import Notification from '../../models/notifications/INotification';
 
 /**
  * Represents an implementation of an {@link IMessageController}
@@ -89,7 +89,8 @@ export default class MessageController implements IMessageController {
    * @returns {HttpResponse} the response data to be sent to the client
    */
   createConversation = async (req: HttpRequest): Promise<HttpResponse> => {
-    return okResponse({ body: await this.messageDao.createConversation(req.body)});
+    const newConversation = await this.messageDao.createConversation(req.body);
+    return okResponse(newConversation);
   };
 
   findConversation = async (req: HttpRequest): Promise<HttpResponse> => {
@@ -111,18 +112,25 @@ export default class MessageController implements IMessageController {
       message: req.body.message,
     };
 
-    console.log(req.body)
+    console.log(req.body);
     const newMessage: any = await this.messageDao.createMessage(
       req.user.id,
       message
     );
-    
+
     // Emit to client sockets
     const recipients = newMessage.conversation.participants;
     for (const recipient of recipients) {
-      const newNotification: Notification = await this.notificationDao.createNotificationForUser("MESSAGES", recipient, req.params.userId,);
+      const newNotification: Notification =
+        await this.notificationDao.createNotificationForUser(
+          'MESSAGES',
+          recipient,
+          req.params.userId
+        );
       this.socketServer.to(recipient.toString()).emit('NEW_MESSAGE', message);
-      this.socketServer.to(recipient.toString()).emit('NEW_NOTIFICATION', message);
+      this.socketServer
+        .to(recipient.toString())
+        .emit('NEW_NOTIFICATION', message);
     }
     return okResponse(newMessage);
   };
