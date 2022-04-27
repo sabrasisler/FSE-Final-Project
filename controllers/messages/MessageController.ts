@@ -120,9 +120,11 @@ export default class MessageController implements IMessageController {
     // Emit to client sockets
     const recipients = newMessage.conversation.participants;
     for (const recipient of recipients) {
-      const newNotification: Notification = await this.notificationDao.createNotificationForUser("MESSAGES", recipient, req.params.userId,);
+      const newNotification: Notification = await this.notificationDao.createNotificationForUser("MESSAGES", recipient, req.params.userId);
       this.socketServer.to(recipient.toString()).emit('NEW_MESSAGE', message);
-      this.socketServer.to(recipient.toString()).emit('NEW_NOTIFICATION', message);
+      if (recipient.id !== req.params.userId) {
+        this.socketServer.to(recipient.toString()).emit('NEW_NOTIFICATION', newNotification);
+      }
     }
     return okResponse(newMessage);
   };
