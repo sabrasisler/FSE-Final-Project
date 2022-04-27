@@ -11,6 +11,7 @@ import { isAuthenticated } from '../auth/isAuthenticated';
 import { addUserToSocketRoom } from '../../config/configSocketIo';
 import NotificationDao from '../../daos/notifications/NotificationsDao';
 import Notification from '../../models/notifications/INotification';
+import IUser from '../../models/users/IUser';
 
 /**
  * Represents an implementation of an {@link IMessageController}
@@ -121,16 +122,20 @@ export default class MessageController implements IMessageController {
     // Emit to client sockets
     const recipients = newMessage.conversation.participants;
     for (const recipient of recipients) {
-      const newNotification: Notification =
-        await this.notificationDao.createNotificationForUser(
-          'MESSAGES',
-          recipient,
-          req.params.userId
-        );
       this.socketServer.to(recipient.toString()).emit('NEW_MESSAGE', message);
-      this.socketServer
-        .to(recipient.toString())
-        .emit('NEW_NOTIFICATION', message);
+      if (recipient.toString() === req.params.userId) {
+        continue;
+      } else {
+        const newNotification: Notification =
+          await this.notificationDao.createNotificationForUser(
+            'MESSAGES',
+            recipient,
+            req.params.userId
+          );
+        this.socketServer
+          .to(recipient.toString())
+          .emit('NEW_NOTIFICATION', newNotification);
+      }
     }
     return okResponse(newMessage);
   };
